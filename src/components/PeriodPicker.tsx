@@ -55,7 +55,7 @@ export function PeriodPicker({ value, onChange }: Props) {
 
   const mode = draft.mode === 'all' ? 'range' : draft.mode;
   const today = todayISO();
-  const isQuickActive = (kind: QuickPeriod) => JSON.stringify(quickPeriod(kind, today)) === JSON.stringify(value);
+  const isQuickActive = (kind: QuickPeriod) => (kind === 'all' ? value.mode === 'all' : value.quick === kind);
 
   return (
     <div className="period" ref={ref}>

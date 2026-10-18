@@ -7,13 +7,16 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build && node scripts/copy-build.mjs",
     "test": "TZ=Asia/Yekaterinburg vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "e2e": "playwright test",
+    "check": "npm test && npm run build && npm run e2e"
   },
   "dependencies": {
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.1",
     "@types/node": "22.18.0",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",

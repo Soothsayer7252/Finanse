@@ -1060,6 +1060,25 @@ select.input {
   gap: 8px;
 }
 
+/* Сообщение об ошибке в разделе */
+.crash {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-color: var(--expense);
+}
+.crash-text {
+  margin: 0;
+  max-height: 200px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* Уведомления */
 .toasts {
   position: fixed;

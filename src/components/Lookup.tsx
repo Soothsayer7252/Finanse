@@ -17,11 +17,13 @@ interface Props {
   /** Подпись текущего значения, если его нет среди вариантов (например, архивная подкатегория). */
   valueLabel?: string;
   ariaLabel?: string;
+  /** Применять набранное при уходе с поля. Во «Входящих» выключено: щелчок мимо не должен назначать категорию. */
+  commitOnBlur?: boolean;
 }
 
 const MAX_SHOWN = 60;
 
-export function Lookup({ value, onChange, options, onEnter, onEscape, placeholder = 'Без категории', inputRef, autoFocus, valueLabel, ariaLabel }: Props) {
+export function Lookup({ value, onChange, options, onEnter, onEscape, placeholder = 'Без категории', inputRef, autoFocus, valueLabel, ariaLabel, commitOnBlur = true }: Props) {
   const [query, setQuery] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -115,7 +117,13 @@ export function Lookup({ value, onChange, options, onEnter, onEscape, placeholde
           setNavigated(false);
           setOpen(true);
         }}
-        onBlur={commitTyped}
+        onBlur={() => {
+          if (commitOnBlur) commitTyped();
+          else {
+            setQuery(null);
+            setOpen(false);
+          }
+        }}
         onKeyDown={onKeyDown}
       />
       {open && matches.length > 0 && (

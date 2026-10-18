@@ -154,6 +154,7 @@ export function OperationList({ ops, emptyText, inbox }: Props) {
                         value={null}
                         options={options}
                         placeholder="Категория…"
+                        commitOnBlur={false}
                         inputRef={(el) => {
                           if (el) inboxRefs.current.set(op.id, el);
                           else inboxRefs.current.delete(op.id);
@@ -203,7 +204,7 @@ export function OperationList({ ops, emptyText, inbox }: Props) {
             </button>
           )}
           <div className="bulk-lookup">
-            <Lookup value={null} options={options} placeholder="Назначить категорию…" onChange={(id) => assign(ids, id)} />
+            <Lookup value={null} options={options} placeholder="Назначить категорию…" commitOnBlur={false} onChange={(id) => assign(ids, id)} />
           </div>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setGroup(ids, 'large')}>
             В крупные

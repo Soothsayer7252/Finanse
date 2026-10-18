@@ -1,6 +1,7 @@
 // Резервная копия: проверка и приведение данных к нужному виду.
 
 import { isValidISO, todayISO } from './dates';
+import { uid } from './ids';
 import { round2 } from './money';
 import { SCHEMA_VERSION, type AppData, type Category, type Operation, type Subcategory } from './types';
 
@@ -75,8 +76,10 @@ export function normalizeData(json: unknown): NormalizeResult {
   const subIds = new Set(subcategories.map((s) => s.id));
 
   const operations: Operation[] = [];
+  const seenIds = new Set<string>();
   let badOps = 0;
   let orphaned = 0;
+  let duplicated = 0;
   for (const op of Array.isArray(o.operations) ? o.operations : []) {
     if (!op || typeof op !== 'object') continue;
     const amount = Number(op.amount);
@@ -91,8 +94,15 @@ export function normalizeData(json: unknown): NormalizeResult {
       orphaned++;
     }
     const created = str(op.createdAt) || `${date}T12:00:00.000Z`;
+    let id = str(op.id);
+    if (!id || seenIds.has(id)) {
+      // Повтор номера: без своего номера правка или удаление задели бы и другую операцию.
+      if (id) duplicated++;
+      id = uid('op');
+    }
+    seenIds.add(id);
     const next: Operation = {
-      id: str(op.id) || `op_${operations.length}_${Date.now().toString(36)}`,
+      id,
       date,
       amount: round2(amount),
       subcategoryId,
@@ -106,6 +116,7 @@ export function normalizeData(json: unknown): NormalizeResult {
   }
   if (badOps) problems.push(`Пропущено операций с неверной датой или суммой: ${badOps}.`);
   if (orphaned) problems.push(`Операций с удалённой подкатегорией: ${orphaned} — перенесены во «Входящие».`);
+  if (duplicated) problems.push(`Операций с повторяющимся номером: ${duplicated} — им выданы новые номера.`);
 
   const s = (o.settings ?? {}) as Record<string, unknown>;
   const p = (s.period ?? {}) as Record<string, unknown>;
@@ -116,6 +127,7 @@ export function normalizeData(json: unknown): NormalizeResult {
       single: str(p.single),
       from: str(p.from),
       to: str(p.to),
+      ...(p.quick === 'today' || p.quick === 'month' || p.quick === 'prevMonth' ? { quick: p.quick } : {}),
     } as AppData['settings']['period'],
   };
 

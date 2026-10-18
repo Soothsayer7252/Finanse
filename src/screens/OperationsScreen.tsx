@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { OperationList } from '../components/OperationList';
 import { PeriodPicker } from '../components/PeriodPicker';
 import { QuickEntry } from '../components/QuickEntry';
-import { inPeriod } from '../domain/dates';
+import { inPeriod, resolvePeriod, todayISO } from '../domain/dates';
 import { formatMoney } from '../domain/money';
 import { normalize, opType, subLabel, totals } from '../domain/ops';
 import type { CategoryType } from '../domain/types';
@@ -24,7 +24,8 @@ export function OperationsScreen({ goToSettings }: { goToSettings: () => void })
   const [categoryId, setCategoryId] = useState('');
   const [search, setSearch] = useState('');
 
-  const inPeriodOps = useMemo(() => data.operations.filter((op) => inPeriod(op.date, data.settings.period)), [data.operations, data.settings.period]);
+  const period = resolvePeriod(data.settings.period, todayISO());
+  const inPeriodOps = useMemo(() => data.operations.filter((op) => inPeriod(op.date, period)), [data.operations, period.mode, period.single, period.from, period.to]);
 
   const filtered = useMemo(() => {
     const q = normalize(search);
@@ -59,7 +60,7 @@ export function OperationsScreen({ goToSettings }: { goToSettings: () => void })
         )}
 
         <div className="list-head">
-          <PeriodPicker value={data.settings.period} onChange={(period) => dispatch({ type: 'settings', patch: { period } })} />
+          <PeriodPicker value={period} onChange={(period) => dispatch({ type: 'settings', patch: { period } })} />
           <div className="summary">
             <Sum label="Доходы" value={t.income} cls="amount-income" sign="+" />
             <Sum label="Расходы" value={t.expense} cls="" sign="−" hint={t.expenseLarge > 0 ? `из них крупные ${formatMoney(t.expenseLarge, { whole: true })}` : undefined} />

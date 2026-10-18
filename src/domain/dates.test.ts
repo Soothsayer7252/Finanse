@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, addMonths, daysInMonth, endOfMonth, formatDayTitle, isValidISO, periodLabel, quickPeriod, todayISO } from './dates';
+import { addDays, addMonths, daysInMonth, endOfMonth, formatDayTitle, isValidISO, periodLabel, quickPeriod, resolvePeriod, todayISO } from './dates';
 
 // Тесты запускаются с часовым поясом Тюмени (UTC+5), см. package.json.
 // В старой версии именно в таких поясах даты съезжали на день.
@@ -49,9 +49,16 @@ describe('проверка даты', () => {
 
 describe('быстрые периоды', () => {
   it('этот и прошлый месяц', () => {
-    expect(quickPeriod('month', '2026-10-18')).toEqual({ mode: 'range', single: '', from: '2026-10-01', to: '2026-10-31' });
-    expect(quickPeriod('prevMonth', '2026-01-18')).toEqual({ mode: 'range', single: '', from: '2025-12-01', to: '2025-12-31' });
+    expect(quickPeriod('month', '2026-10-18')).toEqual({ mode: 'range', single: '', from: '2026-10-01', to: '2026-10-31', quick: 'month' });
+    expect(quickPeriod('prevMonth', '2026-01-18')).toEqual({ mode: 'range', single: '', from: '2025-12-01', to: '2025-12-31', quick: 'prevMonth' });
     expect(quickPeriod('today', '2026-10-18').single).toBe('2026-10-18');
+  });
+
+  it('«Этот месяц», выбранный в октябре, в ноябре означает ноябрь', () => {
+    const saved = quickPeriod('month', '2026-10-18');
+    expect(resolvePeriod(saved, '2026-11-03')).toMatchObject({ from: '2026-11-01', to: '2026-11-30' });
+    const custom = { mode: 'range' as const, single: '', from: '2026-01-01', to: '2026-01-31' };
+    expect(resolvePeriod(custom, '2026-11-03')).toBe(custom);
   });
 
   it('подписи периодов', () => {

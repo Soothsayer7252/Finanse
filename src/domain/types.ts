@@ -48,6 +48,8 @@ export interface Period {
   single: string;
   from: string;
   to: string;
+  /** Выбран быстрой кнопкой («Этот месяц» и т. п.): даты пересчитываются от сегодняшнего дня. */
+  quick?: 'today' | 'month' | 'prevMonth';
 }
 
 export interface Settings {

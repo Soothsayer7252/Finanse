@@ -2,6 +2,7 @@
 // Правила переноса описаны в docs/SPEC.md, раздел 8.
 
 import { isValidISO, todayISO } from './dates';
+import { uid } from './ids';
 import { round2 } from './money';
 import { normalize } from './ops';
 import { SCHEMA_VERSION, type AppData, type Category, type ExpenseGroup, type IncomeKind, type Operation, type Subcategory } from './types';
@@ -105,6 +106,7 @@ export function convertLegacy(json: unknown): LegacyResult {
   };
 
   const operations: Operation[] = [];
+  const seenIds = new Set<string>();
   for (const op of rawOps) {
     const amount = round2(Number(op.amount));
     const date = str(op.date);
@@ -120,8 +122,11 @@ export function convertLegacy(json: unknown): LegacyResult {
     const subId = str(op.subcategoryId);
     const sub = subById.get(subId);
     const created = str(op.createdAt) || `${date}T12:00:00.000Z`;
+    let id = str(op.id);
+    if (!id || seenIds.has(id)) id = uid('op');
+    seenIds.add(id);
     const next: Operation = {
-      id: str(op.id) || `op_legacy_${operations.length}`,
+      id,
       date,
       amount,
       subcategoryId: sub ? sub.id : null,

@@ -1,4 +1,8 @@
 import { useEffect, useState } from 'react';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { makeBackup } from './domain/backup';
+import { todayISO } from './domain/dates';
+import { saveTextFile } from './platform';
 import { CategoriesScreen } from './screens/CategoriesScreen';
 import { InboxScreen } from './screens/InboxScreen';
 import { OperationsScreen } from './screens/OperationsScreen';
@@ -13,7 +17,11 @@ export function App() {
   const inboxCount = data.operations.filter((op) => !op.subcategoryId).length;
 
   // При смене раздела начинаем сверху, а не с места, где остановились в прошлом разделе.
-  useEffect(() => window.scrollTo(0, 0), [tab]);
+  // Внутри claude.ai страница может стоять во встроенном окне, поэтому прокручиваем и его.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.querySelector('.topbar')?.scrollIntoView({ block: 'start' });
+  }, [tab]);
 
   const tabs: { id: Tab; label: string; badge?: number }[] = [
     { id: 'operations', label: 'Операции' },
@@ -43,10 +51,12 @@ export function App() {
 
       {saveError && <div className="card warn-card">{saveError}</div>}
 
-      {tab === 'operations' && <OperationsScreen goToSettings={() => setTab('settings')} />}
-      {tab === 'inbox' && <InboxScreen />}
-      {tab === 'categories' && <CategoriesScreen />}
-      {tab === 'settings' && <SettingsScreen onImported={() => setTab('operations')} />}
+      <ErrorBoundary resetKey={tab} onBackup={() => saveTextFile(`finance-backup-${todayISO()}.json`, makeBackup(data))}>
+        {tab === 'operations' && <OperationsScreen goToSettings={() => setTab('settings')} />}
+        {tab === 'inbox' && <InboxScreen />}
+        {tab === 'categories' && <CategoriesScreen />}
+        {tab === 'settings' && <SettingsScreen onImported={() => setTab('operations')} />}
+      </ErrorBoundary>
     </div>
   );
 }

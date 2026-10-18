@@ -69,13 +69,18 @@ export function inPeriod(date: string, p: Period): boolean {
 export type QuickPeriod = 'today' | 'month' | 'prevMonth' | 'all';
 
 export function quickPeriod(kind: QuickPeriod, today: string): Period {
-  if (kind === 'today') return { mode: 'single', single: today, from: '', to: '' };
-  if (kind === 'month') return { mode: 'range', single: '', from: startOfMonth(today), to: endOfMonth(today) };
+  if (kind === 'today') return { mode: 'single', single: today, from: '', to: '', quick: 'today' };
+  if (kind === 'month') return { mode: 'range', single: '', from: startOfMonth(today), to: endOfMonth(today), quick: 'month' };
   if (kind === 'prevMonth') {
     const prev = addMonths(startOfMonth(today), -1);
-    return { mode: 'range', single: '', from: prev, to: endOfMonth(prev) };
+    return { mode: 'range', single: '', from: prev, to: endOfMonth(prev), quick: 'prevMonth' };
   }
   return { mode: 'all', single: '', from: '', to: '' };
+}
+
+/** Период с актуальными датами: «Этот месяц», выбранный в октябре, в ноябре означает ноябрь. */
+export function resolvePeriod(p: Period, today: string): Period {
+  return p.quick ? quickPeriod(p.quick, today) : p;
 }
 
 /** 05.10.2026 */
