@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, addMonths, daysInMonth, endOfMonth, isValidISO, periodLabel, quickPeriod, todayISO } from './dates';
+import { addDays, addMonths, daysInMonth, endOfMonth, formatDayTitle, isValidISO, periodLabel, quickPeriod, todayISO } from './dates';
 
 // Тесты запускаются с часовым поясом Тюмени (UTC+5), см. package.json.
 // В старой версии именно в таких поясах даты съезжали на день.
@@ -58,5 +58,14 @@ describe('быстрые периоды', () => {
     expect(periodLabel(quickPeriod('month', '2026-10-18'))).toBe('Октябрь 2026');
     expect(periodLabel({ mode: 'range', single: '', from: '2026-10-05', to: '2026-10-12' })).toBe('05.10.2026 — 12.10.2026');
     expect(periodLabel(quickPeriod('all', '2026-10-18'))).toBe('Всё время');
+  });
+});
+
+describe('заголовки дней', () => {
+  it('сегодня, вчера, дата с днём недели', () => {
+    expect(formatDayTitle('2026-10-18', '2026-10-18')).toBe('Сегодня');
+    expect(formatDayTitle('2026-10-17', '2026-10-18')).toBe('Вчера');
+    expect(formatDayTitle('2026-09-29', '2026-10-18')).toBe('29 сентября, вторник');
+    expect(formatDayTitle('2025-12-31', '2026-10-18')).toBe('31 декабря 2025, среда');
   });
 });

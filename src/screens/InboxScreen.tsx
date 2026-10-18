@@ -10,13 +10,13 @@ export function InboxScreen() {
   );
 
   return (
-    <div className="panel">
-      <div className="section-head">
+    <div className="card inbox-card">
+      <div className="card-head">
         <h2>Входящие</h2>
       </div>
       <p className="muted">
         Операции без категории за всё время. Начните печатать название подкатегории и нажмите Enter: курсор сам перейдёт к следующей операции.
-        Чтобы назначить одну категорию сразу нескольким, отметьте их галочками.
+        Чтобы назначить одну категорию сразу нескольким, выделите их нажатием на значок слева.
       </p>
       <OperationList ops={inbox} inbox emptyText="Всё разобрано 🎉 Операций без категории нет." />
     </div>

@@ -1,13 +1,13 @@
-// Список операций по дням: выделение, правка прямо в строке, массовые действия.
+// Список операций по дням. Нажатие на значок — выделить, на строку — изменить.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { formatDayHeading } from '../domain/dates';
+import { formatDayTitle, todayISO } from '../domain/dates';
 import { amountToInput, formatMoney, round2 } from '../domain/money';
-import { opGroup, opType, signedAmount, subLabel } from '../domain/ops';
+import { opGroup, opType, subLabel } from '../domain/ops';
 import type { ExpenseGroup, Operation } from '../domain/types';
-import { newOperation } from '../store/reducer';
 import { useStore, useUndoToast } from '../store/store';
-import { EntryRow } from './EntryRow';
+import { CategoryIcon } from './CategoryIcon';
+import { EntryForm } from './EntryForm';
 import { Lookup } from './Lookup';
 
 interface Props {
@@ -26,6 +26,7 @@ export function OperationList({ ops, emptyText, inbox }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [limit, setLimit] = useState(PAGE);
   const inboxRefs = useRef(new Map<string, HTMLInputElement>());
+  const today = todayISO();
 
   // Выделение не должно держать операции, которых больше нет в списке.
   useEffect(() => {
@@ -57,8 +58,8 @@ export function OperationList({ ops, emptyText, inbox }: Props) {
       return next;
     });
 
-  const selectedOps = ops.filter((o) => selected.has(o.id));
-  const selectedSum = round2(selectedOps.reduce((sum, o) => sum + o.amount, 0));
+  const selecting = selected.size > 0;
+  const selectedSum = round2(ops.filter((o) => selected.has(o.id)).reduce((sum, o) => sum + o.amount, 0));
   const ids = [...selected];
 
   const remove = (list: string[]) => {
@@ -85,37 +86,46 @@ export function OperationList({ ops, emptyText, inbox }: Props) {
   };
 
   return (
-    <div className="op-list">
+    <div className={`op-list ${selecting ? 'is-selecting' : ''}`}>
       {days.map((day) => {
         const dayExpense = round2(day.ops.filter((o) => opType(o, ix) === 'expense').reduce((s, o) => s + o.amount, 0));
         return (
           <section key={day.date} className="op-day">
             <header className="op-day-head">
-              <span>{formatDayHeading(day.date)}</span>
-              {dayExpense > 0 && <span className="muted">расходы {formatMoney(dayExpense)}</span>}
+              <span>{formatDayTitle(day.date, today)}</span>
+              {dayExpense > 0 && <span className="op-day-total">−{formatMoney(dayExpense)}</span>}
             </header>
             {day.ops.map((op) => {
+              const sub = op.subcategoryId ? ix.sub.get(op.subcategoryId) : undefined;
+              const cat = sub ? ix.cat.get(sub.categoryId) : undefined;
               if (editing === op.id) {
                 return (
-                  <div key={op.id} className="op-row op-row-editing">
-                    <EntryRow
+                  <div key={op.id} className="op-edit">
+                    <EntryForm
+                      layout="inline"
                       initial={{
                         date: op.date,
-                        amountText: (!op.subcategoryId && op.inboxType === 'income' ? '+' : '') + amountToInput(op.amount),
+                        amountText: amountToInput(op.amount),
                         subId: op.subcategoryId,
                         comment: op.comment,
+                        income: !op.subcategoryId && op.inboxType === 'income',
                       }}
                       valueLabel={subLabel(op.subcategoryId, ix)}
                       options={options}
-                      autoFocus="amount"
+                      autoFocus
                       submitLabel="Сохранить"
                       onCancel={() => setEditing(null)}
                       onSubmit={(r) => {
-                        const fresh = newOperation({ ...r });
                         dispatch({
                           type: 'op/update',
                           id: op.id,
-                          patch: { date: r.date, amount: r.amount, subcategoryId: r.subcategoryId, comment: r.comment, inboxType: fresh.inboxType },
+                          patch: {
+                            date: r.date,
+                            amount: r.amount,
+                            subcategoryId: r.subcategoryId,
+                            comment: r.comment,
+                            inboxType: r.subcategoryId ? undefined : r.income ? 'income' : 'expense',
+                          },
                         });
                         setEditing(null);
                       }}
@@ -125,16 +135,25 @@ export function OperationList({ ops, emptyText, inbox }: Props) {
               }
               const type = opType(op, ix);
               const large = type === 'expense' && opGroup(op, ix) === 'large';
-              const amount = signedAmount(op, ix);
+              const isSel = selected.has(op.id);
+              const subtitle = [cat?.name, op.comment].filter(Boolean).join(' · ');
               return (
-                <div key={op.id} className={`op-row ${selected.has(op.id) ? 'selected' : ''}`}>
-                  <input type="checkbox" className="op-check" checked={selected.has(op.id)} onChange={() => toggle(op.id)} aria-label="Выбрать" />
-                  {inbox ? (
+                <div key={op.id} className={`op-row ${isSel ? 'selected' : ''} ${inbox ? 'op-row-inbox' : ''}`}>
+                  <button type="button" className="op-icon" onClick={() => toggle(op.id)} aria-pressed={isSel} aria-label="Выбрать" title="Выбрать">
+                    <CategoryIcon sub={sub} cat={cat} />
+                    <span className="op-tick">✓</span>
+                  </button>
+                  <button type="button" className="op-body" onClick={() => setEditing(op.id)} title="Изменить">
+                    <span className="op-title">{sub ? sub.name : inbox ? op.comment || 'Без комментария' : 'Без категории'}</span>
+                    {!inbox && subtitle && <span className="op-subtitle">{subtitle}</span>}
+                    {inbox && <span className="op-subtitle">{type === 'income' ? 'доход' : 'расход'} без категории</span>}
+                  </button>
+                  {inbox && (
                     <div className="op-inbox-lookup">
                       <Lookup
                         value={null}
                         options={options}
-                        placeholder="Назначить категорию…"
+                        placeholder="Категория…"
                         inputRef={(el) => {
                           if (el) inboxRefs.current.set(op.id, el);
                           else inboxRefs.current.delete(op.id);
@@ -147,27 +166,17 @@ export function OperationList({ ops, emptyText, inbox }: Props) {
                         }}
                       />
                     </div>
-                  ) : (
-                    <button type="button" className="op-main" onClick={() => setEditing(op.id)} title="Изменить">
-                      {op.subcategoryId ? <span className="op-cat">{subLabel(op.subcategoryId, ix)}</span> : <span className="badge badge-inbox">Без категории</span>}
-                    </button>
                   )}
-                  <button type="button" className="op-comment" onClick={() => setEditing(op.id)} title="Изменить">
-                    {op.comment}
-                  </button>
-                  <span className="op-badges">
-                    {large && <span className="badge badge-large">крупная</span>}
-                    {type === 'investment' && <span className="badge badge-investment">вложение</span>}
+                  <span className="op-tags">
+                    {large && <span className="tag tag-large">крупная</span>}
+                    {type === 'investment' && <span className="tag tag-invest">вложение</span>}
                   </span>
                   <span className={`op-amount amount-${type}`}>
-                    {amount > 0 ? '+ ' : '− '}
-                    {formatMoney(Math.abs(amount))}
+                    {type === 'income' ? '+' : '−'}
+                    {formatMoney(op.amount)}
                   </span>
                   <span className="op-actions">
-                    <button type="button" className="icon-btn" onClick={() => setEditing(op.id)} aria-label="Изменить" title="Изменить">
-                      ✎
-                    </button>
-                    <button type="button" className="icon-btn icon-danger" onClick={() => remove([op.id])} aria-label="Удалить" title="Удалить">
+                    <button type="button" className="icon-btn" onClick={() => remove([op.id])} aria-label="Удалить" title="Удалить">
                       ×
                     </button>
                   </span>
@@ -183,30 +192,30 @@ export function OperationList({ ops, emptyText, inbox }: Props) {
         </button>
       )}
 
-      {selected.size > 0 && (
-        <div className="bulk-bar">
+      {selecting && (
+        <div className="bulk-bar" role="toolbar" aria-label="Действия с выбранными">
           <span className="bulk-info">
-            Выбрано: <b>{selected.size}</b> на {formatMoney(selectedSum)}
+            Выбрано <b>{selected.size}</b> · {formatMoney(selectedSum)}
           </span>
           {selected.size < ops.length && (
-            <button type="button" className="btn btn-link" onClick={() => setSelected(new Set(ops.map((o) => o.id)))}>
+            <button type="button" className="link" onClick={() => setSelected(new Set(ops.map((o) => o.id)))}>
               Выбрать все {ops.length}
             </button>
           )}
           <div className="bulk-lookup">
             <Lookup value={null} options={options} placeholder="Назначить категорию…" onChange={(id) => assign(ids, id)} />
           </div>
-          <button type="button" className="btn btn-ghost" onClick={() => setGroup(ids, 'large')}>
-            Крупные
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setGroup(ids, 'large')}>
+            В крупные
           </button>
-          <button type="button" className="btn btn-ghost" onClick={() => setGroup(ids, 'daily')}>
-            Повседневные
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setGroup(ids, 'daily')}>
+            В повседневные
           </button>
-          <button type="button" className="btn btn-danger" onClick={() => remove(ids)}>
+          <button type="button" className="btn btn-danger btn-sm" onClick={() => remove(ids)}>
             Удалить
           </button>
-          <button type="button" className="btn btn-ghost" onClick={() => setSelected(new Set())}>
-            Снять выделение
+          <button type="button" className="icon-btn" onClick={() => setSelected(new Set())} aria-label="Снять выделение" title="Снять выделение">
+            ×
           </button>
         </div>
       )}

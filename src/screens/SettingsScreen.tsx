@@ -3,6 +3,7 @@ import { detectFormat, makeBackup, normalizeData } from '../domain/backup';
 import { formatDate, todayISO } from '../domain/dates';
 import { convertLegacy, type LegacyResult } from '../domain/legacy';
 import type { AppData } from '../domain/types';
+import { insideClaude, saveTextFile } from '../platform';
 import { readLegacyFromBrowser } from '../store/storage';
 import { useStore, useToast } from '../store/store';
 import { LegacyWizard } from './LegacyWizard';
@@ -17,13 +18,9 @@ export function SettingsScreen({ onImported }: { onImported: () => void }) {
   const legacyInBrowser = useState(() => readLegacyFromBrowser())[0];
   const beforeImport = storage.loadBeforeImport();
 
-  const download = () => {
-    const blob = new Blob([makeBackup(data)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `finance-backup-${todayISO()}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  const download = async () => {
+    const result = await saveTextFile(`finance-backup-${todayISO()}.json`, makeBackup(data));
+    if (result === 'failed') toast({ text: 'Не получилось сохранить файл. Попробуйте ещё раз.', kind: 'error' });
   };
 
   const openJson = (json: unknown) => {
@@ -70,10 +67,12 @@ export function SettingsScreen({ onImported }: { onImported: () => void }) {
 
   return (
     <div className="stack narrow">
-      <div className="panel">
+      <div className="card">
         <h2>Резервная копия</h2>
         <p className="muted">
-          Данные хранятся только в этом браузере. Время от времени скачивайте копию: если браузер очистится, из неё всё восстанавливается.
+          {insideClaude
+            ? 'Данные хранятся в этом браузере на этом устройстве: на телефоне и компьютере они разные. Время от времени скачивайте копию — из неё всё восстанавливается.'
+            : 'Данные хранятся только в этом браузере. Время от времени скачивайте копию: если браузер очистится, из неё всё восстанавливается.'}
         </p>
         <div className="actions">
           <button type="button" className="btn btn-primary" onClick={download}>
@@ -113,7 +112,7 @@ export function SettingsScreen({ onImported }: { onImported: () => void }) {
           <div className="actions">
             <button
               type="button"
-              className="btn btn-link"
+              className="link"
               onClick={() => {
                 const { data: prev } = normalizeData(beforeImport);
                 setPending({ kind: 'native', data: prev, problems: [] });
@@ -125,7 +124,7 @@ export function SettingsScreen({ onImported }: { onImported: () => void }) {
         )}
       </div>
 
-      <div className="panel">
+      <div className="card">
         <h2>Перенос из старой версии</h2>
         <p className="muted">
           В старой версии откройте «Настройки» → «Выгрузить копию», затем загрузите этот файл кнопкой «Загрузить копию…» выше. Приложение само

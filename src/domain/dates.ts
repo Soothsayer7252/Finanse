@@ -85,14 +85,17 @@ export function formatDate(iso: string): string {
   return `${d}.${m}.${y}`;
 }
 
-const WEEKDAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+const WEEKDAYS = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
 const MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 
-/** «5 октября, вс» — для заголовков дней в списке. */
-export function formatDayHeading(iso: string): string {
+/** Заголовок дня в списке: «Сегодня», «Вчера», «29 сентября, вторник» (год — только если не текущий). */
+export function formatDayTitle(iso: string, today: string): string {
+  if (iso === today) return 'Сегодня';
+  if (iso === addDays(today, -1)) return 'Вчера';
   const [y, m, d] = parseISO(iso);
   const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-  return `${d} ${MONTHS_GEN[m - 1]} ${y}, ${WEEKDAYS[wd]}`;
+  const year = iso.slice(0, 4) === today.slice(0, 4) ? '' : ` ${y}`;
+  return `${d} ${MONTHS_GEN[m - 1]}${year}, ${WEEKDAYS[wd]}`;
 }
 
 export function periodLabel(p: Period): string {

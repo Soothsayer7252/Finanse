@@ -40,7 +40,7 @@ export function LegacyWizard({ result, hasCurrentData, onCancel, onConfirm }: Pr
 
   return (
     <div className="stack narrow">
-      <div className="panel">
+      <div className="card">
         <h2>Перенос из старой версии</h2>
         <ul className="report">
           <li>
@@ -69,7 +69,7 @@ export function LegacyWizard({ result, hasCurrentData, onCancel, onConfirm }: Pr
         const cats = result.data.categories.filter((c) => c.type === sec.type);
         if (!cats.length) return null;
         return (
-          <div key={sec.type} className="panel">
+          <div key={sec.type} className="card">
             <h3>{sec.title}</h3>
             {cats.map((cat) => {
               const catSubs = subs.filter((s) => s.categoryId === cat.id);
@@ -124,7 +124,7 @@ export function LegacyWizard({ result, hasCurrentData, onCancel, onConfirm }: Pr
         );
       })}
 
-      <div className="panel">
+      <div className="card">
         {hasCurrentData && <p className="warn">Данные, которые уже есть в новой версии, будут заменены. Они сохранятся, и их можно будет вернуть в «Настройках».</p>}
         <div className="actions">
           <button type="button" className="btn btn-primary" onClick={() => onConfirm({ ...result.data, subcategories: subs })}>

@@ -30,7 +30,14 @@ export const localStorageStore: DataStorage = {
   load: () => read(KEY),
   save: (data) => localStorage.setItem(KEY, JSON.stringify(data)),
   loadBeforeImport: () => read(KEY_BEFORE_IMPORT),
-  saveBeforeImport: (data) => localStorage.setItem(KEY_BEFORE_IMPORT, JSON.stringify(data)),
+  saveBeforeImport: (data) => {
+    // Запасная копия — не повод срывать замену данных, если браузер не дал её сохранить.
+    try {
+      localStorage.setItem(KEY_BEFORE_IMPORT, JSON.stringify(data));
+    } catch {
+      /* нет места или хранилище недоступно */
+    }
+  },
 };
 
 /** Данные старой версии, если она открывалась в этом же браузере. */

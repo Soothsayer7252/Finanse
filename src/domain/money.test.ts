@@ -35,5 +35,6 @@ describe('вывод суммы', () => {
     expect(formatMoney(1234)).toBe('1 234 ₽');
     expect(formatMoney(1234.5)).toBe('1 234,50 ₽');
     expect(formatMoney(0)).toBe('0 ₽');
+    expect(formatMoney(543822.32, { whole: true })).toBe('543 822 ₽');
   });
 });

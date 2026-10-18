@@ -1,12 +1,13 @@
-// Быстрый ввод: строки заполняются подряд с клавиатуры, без окон.
+// Панель «Новая операция»: всегда под рукой слева от списка.
 
 import { useState } from 'react';
 import { formatDate } from '../domain/dates';
 import { formatMoney } from '../domain/money';
-import { subLabel } from '../domain/ops';
+import { opType } from '../domain/ops';
 import { newOperation } from '../store/reducer';
 import { useStore, useUndoToast } from '../store/store';
-import { EntryRow } from './EntryRow';
+import { CategoryIcon } from './CategoryIcon';
+import { EntryForm } from './EntryForm';
 
 export function QuickEntry() {
   const { data, ix, options, dispatch } = useStore();
@@ -18,15 +19,15 @@ export function QuickEntry() {
   const recent = added
     .map((id) => data.operations.find((o) => o.id === id))
     .filter((o) => !!o)
-    .slice(-5)
+    .slice(-6)
     .reverse();
 
   return (
-    <div className="panel quick-entry">
-      <div className="section-head">
-        <h2>Быстрый ввод</h2>
-        <button type="button" className="btn btn-link" onClick={() => setShowHelp((s) => !s)}>
-          {showHelp ? 'Скрыть подсказку' : 'Как вводить быстро?'}
+    <aside className="card entry-card">
+      <div className="card-head">
+        <h2>Новая операция</h2>
+        <button type="button" className="link" onClick={() => setShowHelp((s) => !s)}>
+          {showHelp ? 'Скрыть' : 'Подсказки'}
         </button>
       </div>
       {showHelp && (
@@ -35,18 +36,17 @@ export function QuickEntry() {
             <b>Enter</b> — к следующему полю, в комментарии — сохранить. <b>Ctrl+Enter</b> — сохранить сразу.
           </li>
           <li>Дата остаётся от прошлой операции: удобно вносить пропущенные дни подряд.</li>
+          <li>Категорию ищите по первым буквам: «дос» → Доставка. Пустая категория — операция попадёт во «Входящие».</li>
           <li>
-            Категорию ищите по первым буквам: «дос» → Доставка. Можно оставить пустой — операция попадёт во «Входящие».
-          </li>
-          <li>
-            <b>+5000</b> — доход (если категория не выбрана). <b>350+120</b> — посчитает сумму.
+            В сумме работает калькулятор: <b>350+120</b> = 470.
           </li>
         </ul>
       )}
-      <EntryRow
-        initial={{ date: data.settings.lastDate, amountText: '', subId: null, comment: '' }}
+      <EntryForm
+        layout="stack"
+        initial={{ date: data.settings.lastDate, amountText: '', subId: null, comment: '', income: false }}
         options={options}
-        autoFocus="amount"
+        autoFocus
         submitLabel="Добавить"
         onSubmit={(r) => {
           const op = newOperation(r);
@@ -57,25 +57,37 @@ export function QuickEntry() {
       />
       {recent.length > 0 && (
         <div className="recent">
-          <span className="muted">Только что добавлено:</span>
-          {recent.map((op) => (
-            <span key={op.id} className="recent-item">
-              {formatDate(op.date)} · {formatMoney(op.amount)} · {op.subcategoryId ? subLabel(op.subcategoryId, ix) : 'во «Входящие»'}
-              <button
-                type="button"
-                className="icon-btn icon-danger"
-                aria-label="Удалить"
-                onClick={() => {
-                  dispatch({ type: 'op/delete', ids: [op.id] });
-                  undoToast('Операция удалена');
-                }}
-              >
-                ×
-              </button>
-            </span>
-          ))}
+          <div className="recent-title">Только что добавлено</div>
+          {recent.map((op) => {
+            const sub = op.subcategoryId ? ix.sub.get(op.subcategoryId) : undefined;
+            const cat = sub ? ix.cat.get(sub.categoryId) : undefined;
+            const income = opType(op, ix) === 'income';
+            return (
+              <div key={op.id} className="recent-item">
+                <CategoryIcon sub={sub} cat={cat} size="sm" />
+                <span className="recent-name">{sub ? sub.name : 'Во «Входящие»'}</span>
+                <span className="muted small">{formatDate(op.date).slice(0, 5)}</span>
+                <span className={`recent-amount ${income ? 'amount-income' : ''}`}>
+                  {income ? '+' : '−'}
+                  {formatMoney(op.amount)}
+                </span>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  aria-label="Удалить"
+                  title="Удалить"
+                  onClick={() => {
+                    dispatch({ type: 'op/delete', ids: [op.id] });
+                    undoToast('Операция удалена');
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
-    </div>
+    </aside>
   );
 }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { OperationList } from '../components/OperationList';
+import { PeriodPicker } from '../components/PeriodPicker';
 import { QuickEntry } from '../components/QuickEntry';
 import { inPeriod } from '../domain/dates';
 import { formatMoney } from '../domain/money';
@@ -18,7 +19,7 @@ const TYPE_FILTERS: { id: TypeFilter; label: string }[] = [
 ];
 
 export function OperationsScreen({ goToSettings }: { goToSettings: () => void }) {
-  const { data, ix } = useStore();
+  const { data, ix, dispatch } = useStore();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [categoryId, setCategoryId] = useState('');
   const [search, setSearch] = useState('');
@@ -38,32 +39,33 @@ export function OperationsScreen({ goToSettings }: { goToSettings: () => void })
       .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
   }, [inPeriodOps, typeFilter, categoryId, search, ix]);
 
-  const t = useMemo(() => totals(filtered, ix), [filtered, ix]);
+  const t = useMemo(() => totals(inPeriodOps, ix), [inPeriodOps, ix]);
   const isEmpty = data.operations.length === 0 && data.categories.length === 0;
+  const filtersOn = typeFilter !== 'all' || categoryId || search;
 
   return (
-    <div className="stack">
-      {isEmpty && (
-        <div className="panel welcome">
-          <h2>Добро пожаловать!</h2>
-          <p>
-            Можно сразу вводить операции ниже: категории создаются во вкладке «Категории», а операции без категории ждут во «Входящих».
-          </p>
-          <p>
-            Если есть данные из старой версии — перенесите их: <button className="btn btn-primary" onClick={goToSettings}>Перенести данные</button>
-          </p>
-        </div>
-      )}
-
+    <div className="ops-layout">
       <QuickEntry />
 
-      <div className="panel">
-        <div className="stats">
-          <Stat label="Доходы" value={t.income} cls="amount-income" sign="+" />
-          <Stat label="Повседневные" value={t.expenseDaily} cls="amount-expense" sign="−" />
-          <Stat label="Крупные" value={t.expenseLarge} cls="amount-expense" sign="−" />
-          <Stat label="Вложено" value={t.investment} cls="amount-investment" />
-          <Stat label="Доходы − расходы" value={t.result} cls={t.result < 0 ? 'amount-expense' : 'amount-income'} sign={t.result < 0 ? '−' : '+'} abs />
+      <main className="card list-card">
+        {isEmpty && (
+          <div className="welcome">
+            <h2>Добро пожаловать!</h2>
+            <p>Вводите операции в форме слева. Категории создаются во вкладке «Категории», а операции без категории ждут во «Входящих».</p>
+            <p>
+              Есть данные из старой версии? <button className="btn btn-primary btn-sm" onClick={goToSettings}>Перенести данные</button>
+            </p>
+          </div>
+        )}
+
+        <div className="list-head">
+          <PeriodPicker value={data.settings.period} onChange={(period) => dispatch({ type: 'settings', patch: { period } })} />
+          <div className="summary">
+            <Sum label="Доходы" value={t.income} cls="amount-income" sign="+" />
+            <Sum label="Расходы" value={t.expense} cls="" sign="−" hint={t.expenseLarge > 0 ? `из них крупные ${formatMoney(t.expenseLarge, { whole: true })}` : undefined} />
+            {t.investment > 0 && <Sum label="Вложено" value={t.investment} cls="amount-investment" />}
+            <Sum label="Итог" value={Math.abs(t.result)} cls={t.result < 0 ? 'amount-expense' : 'amount-income'} sign={t.result < 0 ? '−' : '+'} />
+          </div>
         </div>
 
         <div className="filters">
@@ -74,36 +76,54 @@ export function OperationsScreen({ goToSettings }: { goToSettings: () => void })
               </button>
             ))}
           </div>
-          <select className="input filter-select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} aria-label="Категория">
-            <option value="">Все категории</option>
-            {data.categories
-              .slice()
-              .sort((a, b) => Number(a.archived) - Number(b.archived) || a.name.localeCompare(b.name, 'ru'))
-              .map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                  {c.archived ? ' (архив)' : ''}
-                </option>
-              ))}
-          </select>
-          <input className="input filter-search" placeholder="Поиск по комментарию и категории" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <span className="muted">операций: {filtered.length}</span>
+          <div className="filters-row">
+            <select className="input filter-select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} aria-label="Категория">
+              <option value="">Все категории</option>
+              {data.categories
+                .slice()
+                .sort((a, b) => Number(a.archived) - Number(b.archived) || a.name.localeCompare(b.name, 'ru'))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                    {c.archived ? ' (архив)' : ''}
+                  </option>
+                ))}
+            </select>
+            <input className="input filter-search" type="search" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Поиск по комментарию и категории" />
+          </div>
+          {filtersOn && (
+            <div className="muted small">
+              Найдено: {filtered.length}{' '}
+              <button
+                type="button"
+                className="link"
+                onClick={() => {
+                  setTypeFilter('all');
+                  setCategoryId('');
+                  setSearch('');
+                }}
+              >
+                Сбросить
+              </button>
+            </div>
+          )}
         </div>
 
-        <OperationList ops={filtered} emptyText="За выбранный период операций нет." />
-      </div>
+        <OperationList ops={filtered} emptyText={filtersOn ? 'Ничего не найдено.' : 'За этот период операций нет.'} />
+      </main>
     </div>
   );
 }
 
-function Stat({ label, value, cls, sign, abs }: { label: string; value: number; cls: string; sign?: string; abs?: boolean }) {
+function Sum({ label, value, cls, sign, hint }: { label: string; value: number; cls: string; sign?: string; hint?: string }) {
   return (
-    <div className="stat">
-      <div className="stat-label">{label}</div>
-      <div className={`stat-value ${cls}`}>
-        {sign && value !== 0 ? `${sign} ` : ''}
-        {formatMoney(abs ? Math.abs(value) : value)}
+    <div className="sum">
+      <div className="sum-label">{label}</div>
+      <div className={`sum-value ${cls}`}>
+        {sign && value !== 0 ? sign : ''}
+        {formatMoney(value, { whole: true })}
       </div>
+      {hint && <div className="sum-hint">{hint}</div>}
     </div>
   );
 }

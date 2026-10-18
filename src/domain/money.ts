@@ -32,9 +32,9 @@ export function parseAmount(raw: string): ParsedAmount | null {
   return { amount, income };
 }
 
-/** 1 234 ₽ или 1 234,50 ₽ */
-export function formatMoney(value: number): string {
-  const v = round2(value);
+/** 1 234 ₽ или 1 234,50 ₽. С whole: true — всегда целые рубли (для итогов). */
+export function formatMoney(value: number, opts: { whole?: boolean } = {}): string {
+  const v = opts.whole ? Math.round(value) : round2(value);
   const hasKopecks = Math.abs(v % 1) > 0.001;
   return (
     new Intl.NumberFormat('ru-RU', {

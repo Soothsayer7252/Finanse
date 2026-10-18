@@ -40,8 +40,8 @@ export function CategoriesScreen() {
 
   return (
     <div className="cat-layout">
-      <div className="panel">
-        <div className="section-head">
+      <div className="card">
+        <div className="card-head">
           <h2>Категории</h2>
         </div>
         <div className="add-row">
@@ -76,7 +76,7 @@ export function CategoriesScreen() {
         })}
       </div>
 
-      <div className="panel">{selected ? <CategoryDetails key={selected.id} cat={selected} stats={stats} onDeleted={() => setSelectedId(null)} /> : <div className="empty">Выберите категорию слева или создайте новую.</div>}</div>
+      <div className="card">{selected ? <CategoryDetails key={selected.id} cat={selected} stats={stats} onDeleted={() => setSelectedId(null)} /> : <div className="empty">Выберите категорию слева или создайте новую.</div>}</div>
     </div>
   );
 }
@@ -114,7 +114,7 @@ function CategoryDetails({ cat, stats, onDeleted }: { cat: Category; stats: Map<
 
   return (
     <div>
-      <div className="section-head">
+      <div className="card-head">
         <NameInput className="title-input" value={cat.name} onSave={(name) => dispatch({ type: 'cat/update', id: cat.id, patch: { name } })} />
         <div className="actions">
           <button type="button" className="btn btn-ghost" onClick={() => dispatch({ type: 'cat/update', id: cat.id, patch: { archived: !cat.archived } })}>
