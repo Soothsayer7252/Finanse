@@ -109,7 +109,11 @@
     отдельные выгрузки BingX. Без них заработок немного неточен, а «вложено» неизвестно.
   - **История движения средств BingX** (CSV с колонками
     `Time(...),type,Details,Amount,newAvailableAmount,Assets,Futures`): здесь funding и переводы.
-    Пример для счёта Coin-M пустой, нужна такая же выгрузка по счёту USDⓢ-M.
+    Есть реальный файл по счёту USDⓢ-M (`data/Transaction_Perpetual_Futures.csv`). Типы строк:
+    `Realized PnL`, `Trading fee`, `Funding Fee`, `Forced liquidation` (ликвидации, это тоже
+    убыток), `Transfer` (переводы между счетами BingX: это вложено/выведено),
+    `Deposit`, `Trial Fund`, `Bonus Profit`, `Wealth used as margin`.
+    Это более полный источник, чем файл сделок: в нём есть funding и ликвидации.
   - **Часовой пояс читаем из заголовка колонки времени**: в разных выгрузках BingX он разный
     (Asia/Karachi = UTC+5, Asia/Shanghai = UTC+8).
 - **Валюта**: суммы в долларах (USDT) пересчитываются в рубли.
