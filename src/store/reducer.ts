@@ -3,7 +3,8 @@
 // состояние, чтобы их можно было отменить.
 
 import { nowStamp, uid } from '../domain/ids';
-import type { AppData, Category, ExpenseGroup, Operation, Settings, Subcategory } from '../domain/types';
+import { upsertLimits } from '../domain/insights';
+import type { AppData, Category, ExpenseGroup, LimitSet, Operation, Settings, Subcategory } from '../domain/types';
 
 export type Action =
   | { type: 'op/add'; op: Operation }
@@ -17,6 +18,11 @@ export type Action =
   | { type: 'sub/add'; sub: Subcategory }
   | { type: 'sub/update'; id: string; patch: Partial<Subcategory> }
   | { type: 'sub/delete'; id: string }
+  /** Все операции подкатегории from переходят в into, сама from удаляется. */
+  | { type: 'sub/merge'; from: string; into: string }
+  /** Добавить или заменить лимиты, действующие с месяца limits.from. */
+  | { type: 'limits/set'; limits: LimitSet }
+  | { type: 'limits/delete'; from: string }
   | { type: 'settings'; patch: Partial<Settings> }
   | { type: 'replace'; data: AppData }
   | { type: 'undo' };
@@ -33,6 +39,8 @@ const UNDOABLE: Partial<Record<Action['type'], string>> = {
   'op/group': 'Смена группы',
   'cat/delete': 'Удаление категории',
   'sub/delete': 'Удаление подкатегории',
+  'sub/merge': 'Объединение',
+  'limits/delete': 'Удаление лимитов',
   'replace': 'Замена данных',
 };
 
@@ -89,8 +97,27 @@ function apply(data: AppData, a: Action): AppData {
     case 'sub/delete':
       if (data.operations.some((op) => op.subcategoryId === a.id)) return data;
       return { ...data, subcategories: data.subcategories.filter((s) => s.id !== a.id) };
+    case 'sub/merge': {
+      const from = data.subcategories.find((s) => s.id === a.from);
+      const into = data.subcategories.find((s) => s.id === a.into);
+      const typeOf = (s: Subcategory) => data.categories.find((c) => c.id === s.categoryId)?.type;
+      if (!from || !into || from.id === into.id || typeOf(from) !== typeOf(into)) return data;
+      const ids = data.operations.filter((op) => op.subcategoryId === from.id).map((op) => op.id);
+      const moved = mapOps(data, ids, (op) => {
+        const next = { ...op, subcategoryId: into.id };
+        // Ручная группа, совпавшая с группой новой подкатегории, больше не нужна.
+        if (next.groupOverride && next.groupOverride === (into.group ?? 'daily')) delete next.groupOverride;
+        return next;
+      });
+      return { ...moved, subcategories: moved.subcategories.filter((s) => s.id !== from.id) };
+    }
     case 'settings':
       return { ...data, settings: { ...data.settings, ...a.patch } };
+    case 'limits/set':
+      return { ...data, settings: { ...data.settings, limits: upsertLimits(data.settings.limits, a.limits) } };
+    case 'limits/delete':
+      if (!data.settings.limits.some((l) => l.from === a.from)) return data;
+      return { ...data, settings: { ...data.settings, limits: data.settings.limits.filter((l) => l.from !== a.from) } };
     case 'replace':
       return a.data;
     default:

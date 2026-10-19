@@ -3,9 +3,23 @@
 import { isValidISO, todayISO } from './dates';
 import { uid } from './ids';
 import { round2 } from './money';
-import { SCHEMA_VERSION, type AppData, type Category, type Operation, type Subcategory } from './types';
+import { SCHEMA_VERSION, type AppData, type Category, type LimitSet, type Operation, type Subcategory } from './types';
 
 export const BACKUP_APP_MARK = 'finance-tracker';
+
+const limitValue = (v: unknown): number | null => (typeof v === 'number' && v > 0 ? round2(v) : null);
+
+function normalizeLimits(raw: unknown): LimitSet[] {
+  if (!Array.isArray(raw)) return [];
+  const byMonth = new Map<string, LimitSet>();
+  for (const l of raw) {
+    if (!l || typeof l !== 'object' || typeof l.from !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(l.from)) continue;
+    // Повтор того же месяца — берём первую запись.
+    if (byMonth.has(l.from)) continue;
+    byMonth.set(l.from, { from: l.from, daily: limitValue(l.daily), large: limitValue(l.large), income: limitValue(l.income) });
+  }
+  return [...byMonth.values()].sort((a, b) => a.from.localeCompare(b.from));
+}
 
 export function emptyData(): AppData {
   return {
@@ -13,7 +27,7 @@ export function emptyData(): AppData {
     categories: [],
     subcategories: [],
     operations: [],
-    settings: { lastDate: todayISO(), period: { mode: 'all', single: '', from: '', to: '' } },
+    settings: { lastDate: todayISO(), period: { mode: 'all', single: '', from: '', to: '' }, limits: [] },
   };
 }
 
@@ -129,6 +143,7 @@ export function normalizeData(json: unknown): NormalizeResult {
       to: str(p.to),
       ...(p.quick === 'today' || p.quick === 'month' || p.quick === 'prevMonth' ? { quick: p.quick } : {}),
     } as AppData['settings']['period'],
+    limits: normalizeLimits(s.limits),
   };
 
   return { data: { schemaVersion: SCHEMA_VERSION, categories, subcategories, operations, settings }, problems };

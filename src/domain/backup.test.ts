@@ -31,4 +31,24 @@ describe('проверка данных', () => {
     const { data } = normalizeData({ categories: [], subcategories: [], operations: [], settings: { period: { mode: 'range', from: '2026-10-01', to: '2026-10-31', quick: 'month' } } });
     expect(data.settings.period.quick).toBe('month');
   });
+
+  it('лимиты сохраняются в копии, испорченные записи отбрасываются', () => {
+    const limits = [
+      { from: '2026-10', daily: 60000, large: null, income: 90000 },
+      { from: '2026-04', daily: '50000', large: -5, income: 0 },
+      { from: '2026-13', daily: 1, large: 1, income: 1 },
+      { from: 'когда-то', daily: 1, large: 1, income: 1 },
+      { from: '2026-10', daily: 1, large: 1, income: 1 },
+      null,
+    ];
+    const { data } = normalizeData({ schemaVersion: 1, categories: [], subcategories: [], operations: [], settings: { limits } });
+    expect(data.settings.limits).toEqual([
+      { from: '2026-04', daily: null, large: null, income: null },
+      { from: '2026-10', daily: 60000, large: null, income: 90000 },
+    ]);
+  });
+
+  it('старая копия без лимитов открывается с пустым списком', () => {
+    expect(normalizeData({ schemaVersion: 1, categories: [], subcategories: [], operations: [], settings: { lastDate: '2026-10-01' } }).data.settings.limits).toEqual([]);
+  });
 });

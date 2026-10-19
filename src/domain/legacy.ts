@@ -154,6 +154,7 @@ export function convertLegacy(json: unknown): LegacyResult {
       settings: {
         lastDate: isValidISO(lastDate) ? lastDate : todayISO(),
         period: { mode: 'all', single: '', from: '', to: '' },
+        limits: [],
       },
     },
     report,

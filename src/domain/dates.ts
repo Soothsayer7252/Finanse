@@ -93,9 +93,22 @@ export function formatDate(iso: string): string {
 const WEEKDAYS = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
 const MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 
+const MONTHS_NOM = ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+const MONTHS_PREP = ['январе', 'феврале', 'марте', 'апреле', 'мае', 'июне', 'июле', 'августе', 'сентябре', 'октябре', 'ноябре', 'декабре'];
+
 /** «сентября» — месяц в родительном падеже (1–12). */
 export function monthGenitive(month: number): string {
   return MONTHS_GEN[month - 1];
+}
+
+/** '2026-09' → «сентябрь 2026». */
+export function monthTitle(ym: string): string {
+  return `${MONTHS_NOM[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
+}
+
+/** '2026-09' → «сентябре» (для «в сентябре»). */
+export function monthPrepositional(ym: string): string {
+  return MONTHS_PREP[Number(ym.slice(5, 7)) - 1];
 }
 
 /** Список дней одного месяца словами: «28 и 30 сентября», «3, 5 и 9 октября». */

@@ -52,10 +52,25 @@ export interface Period {
   quick?: 'today' | 'month' | 'prevMonth';
 }
 
+/**
+ * Лимиты и цель, действующие с месяца from ('ГГГГ-ММ') и до следующей записи.
+ * null — не задано. Прошлые месяцы оцениваются по записи, действовавшей тогда.
+ */
+export interface LimitSet {
+  from: string;
+  /** Лимит повседневных трат в месяц. */
+  daily: number | null;
+  /** Лимит крупных покупок в месяц. */
+  large: number | null;
+  /** Цель по доходу в месяц (стабильный + дополнительный). */
+  income: number | null;
+}
+
 export interface Settings {
   /** Дата последней введённой операции: подставляется в следующую. */
   lastDate: string;
   period: Period;
+  limits: LimitSet[];
 }
 
 export const SCHEMA_VERSION = 1;

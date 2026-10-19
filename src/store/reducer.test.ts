@@ -60,4 +60,34 @@ describe('действия с данными', () => {
     expect(reducer(s, { type: 'cat/delete', id: 'food' })).toBe(s);
     expect(reducer(s, { type: 'sub/delete', id: 'rest' }).data.subcategories).toHaveLength(1);
   });
+
+  it('объединение переносит операции и удаляет подкатегорию, отменяется', () => {
+    let s = reducer(base(), { type: 'op/assign', ids: ['a'], subcategoryId: 'rest' });
+    s = reducer(s, { type: 'op/group', ids: ['a'], group: 'daily' });
+    s = reducer(s, { type: 'sub/merge', from: 'rest', into: 'deliv' });
+    expect(s.data.subcategories.map((x) => x.id)).toEqual(['deliv']);
+    expect(s.data.operations.every((o) => o.subcategoryId === 'deliv')).toBe(true);
+    expect(s.data.operations.find((o) => o.id === 'a')!.groupOverride).toBeUndefined();
+    expect(s.undo?.label).toBe('Объединение');
+    s = reducer(s, { type: 'undo' });
+    expect(s.data.subcategories).toHaveLength(2);
+    expect(s.data.operations.find((o) => o.id === 'a')!.subcategoryId).toBe('rest');
+  });
+
+  it('нельзя объединить с собой или с подкатегорией другого типа', () => {
+    const st = base();
+    st.data.categories.push({ id: 'inc', name: 'Доходы', type: 'income', archived: false });
+    st.data.subcategories.push({ id: 'sal', categoryId: 'inc', name: 'Зарплата', archived: false, incomeKind: 'stable' });
+    expect(reducer(st, { type: 'sub/merge', from: 'deliv', into: 'deliv' })).toBe(st);
+    expect(reducer(st, { type: 'sub/merge', from: 'deliv', into: 'sal' })).toBe(st);
+  });
+
+  it('лимиты: замена по месяцу и удаление с отменой', () => {
+    let s = reducer(base(), { type: 'limits/set', limits: { from: '2026-10', daily: 50000, large: null, income: null } });
+    s = reducer(s, { type: 'limits/set', limits: { from: '2026-10', daily: 60000, large: 20000, income: 90000 } });
+    expect(s.data.settings.limits).toEqual([{ from: '2026-10', daily: 60000, large: 20000, income: 90000 }]);
+    s = reducer(s, { type: 'limits/delete', from: '2026-10' });
+    expect(s.data.settings.limits).toEqual([]);
+    expect(reducer(s, { type: 'undo' }).data.settings.limits).toHaveLength(1);
+  });
 });

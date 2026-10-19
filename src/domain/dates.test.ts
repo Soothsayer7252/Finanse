@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, addMonths, daysInMonth, endOfMonth, formatDayShort, formatDayTitle, formatDaysList, isValidISO, periodLabel, quickPeriod, resolvePeriod, todayISO } from './dates';
+import { addDays, addMonths, daysInMonth, endOfMonth, formatDayShort, formatDayTitle, formatDaysList, isValidISO, monthPrepositional, monthTitle, periodLabel, quickPeriod, resolvePeriod, todayISO } from './dates';
 
 // Тесты запускаются с часовым поясом Тюмени (UTC+5), см. package.json.
 // В старой версии именно в таких поясах даты съезжали на день.
@@ -91,5 +91,13 @@ describe('короткая дата', () => {
     expect(formatDayShort('2026-10-17', '2026-10-18')).toBe('Вчера');
     expect(formatDayShort('2026-09-28', '2026-10-18')).toBe('пн, 28.09');
     expect(formatDayShort('2025-12-31', '2026-10-18')).toBe('ср, 31.12.2025');
+  });
+});
+
+describe('названия месяцев', () => {
+  it('«сентябрь 2026» и «в сентябре»', () => {
+    expect(monthTitle('2026-09')).toBe('сентябрь 2026');
+    expect(monthTitle('2027-01')).toBe('январь 2027');
+    expect(monthPrepositional('2026-05')).toBe('мае');
   });
 });
