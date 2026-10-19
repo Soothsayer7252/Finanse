@@ -224,6 +224,8 @@ function formatRatio(r: number): string {
 }
 
 const money = (n: number) => formatMoney(n, { whole: true });
+/** Число без знака рубля: «41 200». */
+const num = (n: number) => money(n).replace(' ₽', '');
 
 /** Почему категория отличается от обычного: разовая трата, чаще, дороже или какая подкатегория. */
 function explain(
@@ -248,24 +250,32 @@ function explain(
     else if (second && Math.abs(second[1]) >= Math.abs(delta) * 0.2) driverText = `в основном ${subName(id1)} ${signed(d1)} и ${subName(second[0])} ${signed(second[1])}`;
   }
 
-  if (!up) return driverText;
-
   const count = curOps.length;
+  const usualSum = median(base?.sums ?? []);
+  const usualCount = Math.round(median(base?.counts ?? []));
+  const avg = count ? curOps.reduce((s, o) => s + o.amount, 0) / count : 0;
+  const usualAvg = usualCount ? usualSum / usualCount : 0;
+  const times = (n: number) => `${n} ${plural(n, 'раз', 'раза', 'раз')}`;
+  const join = (...parts: string[]) => parts.filter(Boolean).join('; ');
+
+  if (!up) {
+    if (count === 0) return join(`ни одной траты, обычно ~${times(usualCount)}`, driverText);
+    if (usualCount - count >= 2 && count <= usualCount * 0.7) return join(`реже обычного: ${times(count)} вместо ~${usualCount}`, driverText);
+    if (usualAvg > 0 && avg <= usualAvg * 0.75) return join(`траты мельче: в среднем ${money(avg)} вместо ~${money(usualAvg)}`, driverText);
+    return driverText;
+  }
+
   const biggest = curOps.reduce<Operation | null>((m, op) => (!m || op.amount > m.amount ? op : m), null);
   const what = (op: Operation) => [subName(op.subcategoryId!), op.comment].filter(Boolean).join(', ');
-  const usualSum = median(base?.sums ?? []);
   if (usualSum === 0) {
     if (count === 1 && biggest) return `одна трата ${money(biggest.amount)} — ${what(biggest)}`;
     const subs = new Set(curOps.map((op) => op.subcategoryId!));
-    const times = `${count} ${plural(count, 'трата', 'траты', 'трат')}`;
-    return subs.size === 1 ? `${times} — ${subName([...subs][0])}` : [times, driverText].filter(Boolean).join('; ');
+    const n = `${count} ${plural(count, 'трата', 'траты', 'трат')}`;
+    return subs.size === 1 ? `${n} — ${subName([...subs][0])}` : join(n, driverText);
   }
   if (biggest && biggest.amount > threshold && biggest.amount >= delta * 0.5) return `разовая трата ${money(biggest.amount)} — ${what(biggest)}`;
-  const usualCount = Math.round(median(base?.counts ?? []));
-  if (count >= usualCount * 1.3 && count - usualCount >= 2) return [`чаще обычного: ${count} ${plural(count, 'раз', 'раза', 'раз')} вместо ~${usualCount}`, driverText].filter(Boolean).join('; ');
-  const avg = count ? curOps.reduce((s, o) => s + o.amount, 0) / count : 0;
-  const usualAvg = usualCount ? usualSum / usualCount : 0;
-  if (usualAvg > 0 && avg >= usualAvg * 1.25) return [`траты крупнее: в среднем ${money(avg)} вместо ~${money(usualAvg)}`, driverText].filter(Boolean).join('; ');
+  if (count >= usualCount * 1.3 && count - usualCount >= 2) return join(`чаще обычного: ${times(count)} вместо ~${usualCount}`, driverText);
+  if (usualAvg > 0 && avg >= usualAvg * 1.25) return join(`траты крупнее: в среднем ${money(avg)} вместо ~${money(usualAvg)}`, driverText);
   return driverText || 'понемногу больше во всём';
 }
 
@@ -294,7 +304,7 @@ export function dailyPace(ops: Operation[], ix: Index, month: string, today: str
 export interface LimitStatus {
   /** Заполнение полоски 0…1; null — лимит не задан, полоски нет. */
   fill: number | null;
-  /** «55 333 из 60 000 ₽» или просто «55 333 ₽». */
+  /** «55 333 / 60 000» или, без лимита, «55 333 ₽». */
   value: string;
   /** Пояснение под полоской. */
   note: string;
@@ -317,20 +327,30 @@ export function limitStatus(
     const what = kind === 'income' ? 'Цель не задана' : 'Лимит не задан';
     return { fill: null, value: money(spent), note: usual ? `${what} · обычно ~${money(usual)}` : what, tone: 'neutral' };
   }
-  const value = `${formatMoney(spent, { whole: true }).replace(' ₽', '')} из ${money(limit)}`;
+  const value = `${num(spent)} / ${num(limit)}`;
   const fill = Math.min(spent / limit, 1);
   const past = progress.share >= 1;
 
   if (kind === 'income') {
-    if (spent >= limit) return { fill, value, note: spent > limit ? `Цель выполнена, сверх +${money(spent - limit)}` : 'Цель выполнена', tone: 'ok' };
+    if (spent >= limit) return { fill, value, note: spent > limit ? `Цель выполнена, +${money(spent - limit)}` : 'Цель выполнена', tone: 'ok' };
     return past ? { fill, value, note: `До цели не хватило ${money(limit - spent)}`, tone: 'warn' } : { fill, value, note: `До цели ${money(limit - spent)}`, tone: 'neutral' };
   }
 
   const left = limit - spent;
   if (left < 0) return { fill, value, note: `Перерасход ${money(-left)}`, tone: 'over' };
   if (past) return { fill, value, note: `Уложились, осталось ${money(left)}`, tone: 'ok' };
-  if (projected != null && projected > limit) return { fill, value, note: `Осталось ${money(left)}, но при нынешнем темпе выйдет ~${money(projected)}`, tone: 'warn' };
+  if (projected != null && projected > limit) return { fill, value, note: `Темп выше лимита — к концу ~${money(projected)}`, tone: 'warn' };
   const daysLeft = progress.days - progress.day + 1;
-  if (projected != null && daysLeft > 1) return { fill, value, note: `Осталось ${money(left)} — это ~${money(left / daysLeft)} в день`, tone: 'ok' };
+  if (projected != null && daysLeft > 1) return { fill, value, note: `Осталось ${money(left)} · ~${money(left / daysLeft)} в день`, tone: 'ok' };
   return { fill, value, note: `Осталось ${money(left)}`, tone: 'ok' };
+}
+
+// ——— Крупные покупки месяца ———
+
+/** Самые крупные покупки месяца из группы «крупные» — чтобы объяснить перерасход этого лимита. */
+export function topLarge(ops: Operation[], ix: Index, month: string, n = 2): Operation[] {
+  return ops
+    .filter((op) => op.date.startsWith(month) && opType(op, ix) === 'expense' && opGroup(op, ix) === 'large')
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, n);
 }

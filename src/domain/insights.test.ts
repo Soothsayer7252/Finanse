@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { baselineMonths, categoryChanges, dailyPace, limitStatus, limitsFor, median, monthProgress, upsertLimits, usualMonth } from './insights';
+import { baselineMonths, categoryChanges, dailyPace, limitStatus, limitsFor, median, monthProgress, topLarge, upsertLimits, usualMonth } from './insights';
 import { buildIndex } from './ops';
 import type { Operation } from './types';
 
@@ -196,14 +196,21 @@ describe('что изменилось: текущий месяц сравнив�
     const [c] = categoryChanges([...base, op('2026-10-02', 1000, 'groc')], ix, '2026-10', '2026-10-18');
     expect(c).toMatchObject({ categoryId: 'food', current: 1000, usual: 4000, direction: 'down' });
     expect(c.title).toBe('Еда намного меньше обычного');
-    expect(c.reason).toBe('в основном Продукты: −2 000 ₽');
+    expect(c.reason).toBe('реже обычного: 1 раз вместо ~5; в основном Продукты: −2 000 ₽');
   });
 
-  it('меньше обычного в категории с одной подкатегорией — без пояснения, цифры и так видны', () => {
+  it('меньше обычного в категории с одной подкатегорией — реже, без главной подкатегории', () => {
     const taxiExtra = ['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09'].flatMap((m) => [op(`${m}-04`, 1000, 'taxi'), op(`${m}-08`, 1000, 'taxi')]);
     const [c] = categoryChanges([...base, ...taxiExtra, op('2026-10-03', 300, 'taxi')], ix, '2026-10', '2026-10-18').filter((x) => x.categoryId === 'trans');
     expect(c).toMatchObject({ current: 300, usual: 2600, direction: 'down', title: 'Транспорт намного меньше обычного' });
-    expect(c.reason).toBe('');
+    expect(c.reason).toBe('реже обычного: 1 раз вместо ~4');
+  });
+
+  it('меньше обычного: ни одной траты или траты мельче', () => {
+    const none = categoryChanges([...base, ...regular('2026-10', 18).filter((o) => o.subcategoryId !== 'groc' && o.subcategoryId !== 'cafe')], ix, '2026-10', '2026-10-18');
+    expect(none[0].reason).toBe('ни одной траты, обычно ~5 раз; в основном Продукты: −3 000 ₽');
+    const cheap = regular('2026-10', 18).map((o) => (o.subcategoryId === 'groc' || o.subcategoryId === 'cafe' ? { ...o, amount: o.amount / 2 } : o));
+    expect(categoryChanges([...base, ...cheap], ix, '2026-10', '2026-10-18')[0].reason).toBe('траты мельче: в среднем 400 ₽ вместо ~800 ₽; в основном Продукты: −1 500 ₽');
   });
 
   it('в первую неделю «меньше обычного» не показываем', () => {
@@ -241,14 +248,14 @@ describe('подпись к полоске лимита', () => {
   });
 
   it('прошлый месяц: уложились или перерасход', () => {
-    expect(limitStatus('expense', 55333, 60000, null, past)).toEqual({ fill: 55333 / 60000, value: '55 333 из 60 000 ₽', note: 'Уложились, осталось 4 667 ₽', tone: 'ok' });
+    expect(limitStatus('expense', 55333, 60000, null, past)).toEqual({ fill: 55333 / 60000, value: '55 333 / 60 000', note: 'Уложились, осталось 4 667 ₽', tone: 'ok' });
     expect(limitStatus('expense', 61240, 60000, null, past)).toMatchObject({ fill: 1, note: 'Перерасход 1 240 ₽', tone: 'over' });
   });
 
   it('текущий месяц: сколько можно в день или предупреждение о темпе', () => {
     // Осталось 14 дней вместе с сегодняшним.
-    expect(limitStatus('expense', 32000, 60000, null, now, 55111).note).toBe('Осталось 28 000 ₽ — это ~2 000 ₽ в день');
-    expect(limitStatus('expense', 40000, 60000, null, now, 68889)).toMatchObject({ note: 'Осталось 20 000 ₽, но при нынешнем темпе выйдет ~68 889 ₽', tone: 'warn' });
+    expect(limitStatus('expense', 32000, 60000, null, now, 55111).note).toBe('Осталось 28 000 ₽ · ~2 000 ₽ в день');
+    expect(limitStatus('expense', 40000, 60000, null, now, 68889)).toMatchObject({ note: 'Темп выше лимита — к концу ~68 889 ₽', tone: 'warn' });
     // Крупные — без прогноза: они бывают разово.
     expect(limitStatus('expense', 1240, 20000, null, now).note).toBe('Осталось 18 760 ₽');
   });
@@ -256,6 +263,20 @@ describe('подпись к полоске лимита', () => {
   it('цель по доходу', () => {
     expect(limitStatus('income', 74320, 90000, null, past)).toMatchObject({ note: 'До цели не хватило 15 680 ₽', tone: 'warn' });
     expect(limitStatus('income', 50000, 90000, null, now)).toMatchObject({ note: 'До цели 40 000 ₽', tone: 'neutral' });
-    expect(limitStatus('income', 99649, 90000, null, past)).toMatchObject({ fill: 1, note: 'Цель выполнена, сверх +9 649 ₽', tone: 'ok' });
+    expect(limitStatus('income', 99649, 90000, null, past)).toMatchObject({ fill: 1, note: 'Цель выполнена, +9 649 ₽', tone: 'ok' });
+  });
+});
+
+describe('крупные покупки месяца', () => {
+  it('самые дорогие из группы «крупные», включая ручную пометку', () => {
+    const ops = [
+      ...regular('2026-10', 18),
+      op('2026-10-04', 12900, 'laptop', { comment: 'наушники' }),
+      op('2026-10-06', 30000, 'laptop'),
+      op('2026-10-07', 8000, 'cafe', { groupOverride: 'large' }),
+      op('2026-09-07', 90000, 'laptop'),
+    ];
+    expect(topLarge(ops, ix, '2026-10').map((o) => o.amount)).toEqual([30000, 12900]);
+    expect(topLarge(ops, ix, '2026-10', 5)).toHaveLength(3);
   });
 });

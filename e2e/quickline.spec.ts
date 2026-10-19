@@ -120,11 +120,11 @@ test.describe('Главная', () => {
     await tab(page, 'Главная').click();
     await expect(page.locator('.month-name')).toHaveText('Октябрь 2026');
     await expect(page.locator('.hero-title')).toContainText('Месяц в плюсе');
-    await expect(page.locator('.insight', { hasText: 'без категории' })).toBeVisible();
+    await expect(page.locator('.todo-row', { hasText: 'без категории' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Прошлый месяц' }).click();
     await expect(page.locator('.month-name')).toHaveText('Сентябрь 2026');
-    await expect(page.locator('.limit-bar', { hasText: 'Крупные покупки' })).toContainText('45 000 ₽');
+    await expect(page.locator('.limit-bar', { hasText: 'Крупные' })).toContainText('45 000 ₽');
     // Месяц запоминается при уходе с Главной.
     await tab(page, 'Категории').click();
     await tab(page, 'Главная').click();
@@ -134,7 +134,7 @@ test.describe('Главная', () => {
     await expect(page.getByRole('button', { name: 'Следующий месяц' })).toBeDisabled();
 
     // В октябре данные есть по 16-е, сегодня 18-е: пропущено только 17-е.
-    const missing = page.locator('.insight', { hasText: 'без записей' });
+    const missing = page.locator('.todo-row', { hasText: 'без записей' });
     await expect(missing).toContainText('1 день без записей');
     await missing.getByRole('button', { name: '+ 17.10' }).click();
     await expect(tab(page, 'Операции')).toHaveClass(/active/);
@@ -144,7 +144,7 @@ test.describe('Главная', () => {
     await page.keyboard.press('Enter');
     expect((await stored(page)).operations.at(-1)).toMatchObject({ date: '2026-10-17', amount: 300 });
     await tab(page, 'Главная').click();
-    await expect(page.locator('.insight', { hasText: 'без записей' })).toHaveCount(0);
+    await expect(page.locator('.todo-row', { hasText: 'без записей' })).toHaveCount(0);
   });
 
   test('без операций в месяце — понятная надпись', async ({ page }) => {

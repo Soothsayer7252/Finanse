@@ -18,17 +18,20 @@ function sample() {
   for (const d of [5, 6, 7, 8, 11, 12, 14, 15]) add('cafe', day('10', d), 500);
   for (const d of [3, 13]) add('taxi', day('10', d), 300);
   add('salary', day('10', 10), 50000);
+  operations.push({ id: 'big', date: day('10', 6), amount: 12900, subcategoryId: 'gadgets', comment: 'наушники', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' });
   return {
     schemaVersion: 1,
     categories: [
       { id: 'food', name: 'Еда', type: 'expense', archived: false },
       { id: 'trans', name: 'Транспорт', type: 'expense', archived: false },
+      { id: 'tech', name: 'Техника', type: 'expense', archived: false },
       { id: 'inc', name: 'Доходы', type: 'income', archived: false },
     ],
     subcategories: [
       { id: 'groc', categoryId: 'food', name: 'Продукты', archived: false, group: 'daily' },
       { id: 'cafe', categoryId: 'food', name: 'Кафе', archived: false, group: 'daily' },
       { id: 'taxi', categoryId: 'trans', name: 'Такси', archived: false, group: 'daily' },
+      { id: 'gadgets', categoryId: 'tech', name: 'Гаджеты', archived: false, group: 'large' },
       { id: 'salary', categoryId: 'inc', name: 'Зарплата', archived: false, incomeKind: 'stable' },
     ],
     operations,
@@ -91,9 +94,10 @@ test.describe('Лимиты и цель', () => {
 test.describe('Главная: полоски и что изменилось', () => {
   test('без лимитов — ссылка в Настройки и «обычно» вместо полоски', async ({ page }) => {
     await openWithSample(page);
-    const daily = page.locator('.limit-bar', { hasText: 'Повседневные траты' });
+    const daily = page.locator('.limit-bar', { hasText: 'Повседневные' });
     await expect(daily).toContainText('Лимит не задан · обычно ~6 100 ₽');
-    await expect(daily.locator('.bar')).toHaveCount(0);
+    await expect(daily.locator('.bar-fill')).toHaveCount(0);
+    await expect(daily.locator('.bar-none')).toBeVisible();
     await page.getByRole('button', { name: 'Задать лимиты и цель по доходу →' }).click();
     await expect(page.getByRole('heading', { name: 'Лимиты и цель' })).toBeVisible();
   });
@@ -108,23 +112,28 @@ test.describe('Главная: полоски и что изменилось', (
     await page.reload();
 
     // Октябрь по 18-е: продукты 3 000 + кафе 4 000 + такси 600 = 7 600 ₽.
-    const daily = page.locator('.limit-bar', { hasText: 'Повседневные траты' });
-    await expect(daily).toContainText('7 600 из 9 000 ₽');
-    await expect(daily).toContainText('Осталось 1 400 ₽, но при нынешнем темпе выйдет ~13 089 ₽');
+    const daily = page.locator('.limit-bar', { hasText: 'Повседневные' });
+    await expect(daily).toContainText('7 600 / 9 000');
+    await expect(daily).toContainText('Темп выше лимита — к концу ~13 089 ₽');
     await expect(daily.locator('.bar-marker')).toBeVisible();
     await expect(page.locator('.limit-bar', { hasText: 'Доход' })).toContainText('До цели 10 000 ₽');
 
-    const alert = page.locator('.insight', { hasText: 'Повседневные идут быстрее лимита' });
+    await expect(page.locator('.limit-bar', { hasText: 'Крупные' })).toContainText('Осталось 7 100 ₽');
+    await expect(page.locator('.tile', { hasText: 'Ушло' })).toContainText('20 500 ₽');
+    const alert = page.locator('.todo-row', { hasText: 'Повседневные идут быстрее лимита' });
     await expect(alert).toContainText('Чтобы уложиться — не больше ~100 ₽ в день');
     await expect(alert).toContainText('Больше обычного: Еда +3 000 ₽');
 
     // К 18-му числу обычно уходит 4 000 ₽ на еду, сейчас 7 000 ₽.
-    await expect(page.getByRole('heading', { name: 'Что изменилось в этом месяце' })).toBeVisible();
-    const food = page.locator('.change-card', { hasText: 'Еда на 75% больше обычного' });
-    await expect(food).toContainText('7 000 ₽');
-    await expect(food).toContainText('обычно к этому числу ~4 000 ₽');
-    await expect(food).toContainText('Чаще обычного: 11 раз вместо ~5; в основном Кафе: +3 000 ₽');
-    await expect(page.locator('.change-card')).toHaveCount(1);
+    await expect(page.getByRole('heading', { name: 'Где траты не как обычно' })).toBeVisible();
+    await expect(page.getByText('Сравниваем с тем, сколько вы обычно тратите к 18-му числу')).toBeVisible();
+    const food = page.locator('.change-row', { hasText: 'Еда' });
+    await expect(food.locator('.pill')).toHaveText('на 3 000 ₽ больше');
+    await expect(food).toContainText('Сейчас7 000 ₽');
+    await expect(food).toContainText('Обычно~4 000 ₽');
+    await expect(food).toContainText('Почему: чаще обычного: 11 раз вместо ~5; в основном Кафе: +3 000 ₽');
+    // Крупная покупка в «обычно» не сравнивается: она объясняется у лимита крупных.
+    await expect(page.locator('.change-row')).toHaveCount(1);
 
     // Нажатие на вывод открывает операции этой категории за месяц.
     await food.click();
@@ -138,19 +147,33 @@ test.describe('Главная: полоски и что изменилось', (
     await expect(page.locator('.filter-select')).toHaveValue('');
   });
 
+  test('перерасход крупных объясняется самыми дорогими покупками', async ({ page }) => {
+    await openWithSample(page);
+    await page.evaluate(() => {
+      const d = JSON.parse(localStorage.getItem('finance-tracker-v2')!);
+      d.settings.limits = [{ from: '2026-10', daily: null, large: 10000, income: null }];
+      localStorage.setItem('finance-tracker-v2', JSON.stringify(d));
+    });
+    await page.reload();
+    await expect(page.locator('.limit-bar', { hasText: 'Крупные' })).toContainText('Перерасход 2 900 ₽');
+    const row = page.locator('.todo-row', { hasText: 'Крупные вышли за лимит на 2 900 ₽' });
+    await expect(row).toContainText('Крупнее всего: Техника › Гаджеты, наушники — 12 900 ₽');
+    await expect(row.locator('.todo-dot-over')).toBeVisible();
+  });
+
   test('прошлый месяц — по лимитам того времени, без пропущенных дней «как обычно»', async ({ page }) => {
     await openWithSample(page);
     await page.getByRole('button', { name: 'Прошлый месяц' }).click();
     await expect(page.locator('.month-name')).toHaveText('Сентябрь 2026');
-    await expect(page.locator('.limit-bar', { hasText: 'Повседневные траты' })).toContainText('Лимит не задан');
-    await expect(page.getByRole('heading', { name: 'Что изменилось в сентябре' })).toBeVisible();
-    await expect(page.locator('.insight', { hasText: 'Всё как обычно' })).toBeVisible();
+    await expect(page.locator('.limit-bar', { hasText: 'Повседневные' })).toContainText('Лимит не задан');
+    await expect(page.getByRole('heading', { name: 'Где траты в сентябре были не как обычно' })).toBeVisible();
+    await expect(page.locator('.todo-row', { hasText: 'Всё как обычно' })).toBeVisible();
   });
 
   test('мало истории — честно говорим, что сравнивать не с чем', async ({ page }) => {
     await openWithSample(page);
     for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Прошлый месяц' }).click();
     await expect(page.locator('.month-name')).toHaveText('Июнь 2026');
-    await expect(page.locator('.insight', { hasText: 'Сравнивать пока не с чем' })).toContainText('сейчас 2');
+    await expect(page.locator('.todo-row', { hasText: 'Сравнивать пока не с чем' })).toContainText('сейчас 2');
   });
 });
