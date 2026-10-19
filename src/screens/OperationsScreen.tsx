@@ -25,11 +25,11 @@ export interface Prefill {
   n: number;
 }
 
-export function OperationsScreen({ prefill }: { prefill: Prefill | null }) {
+export function OperationsScreen({ prefill, categoryFilter = '' }: { prefill: Prefill | null; categoryFilter?: string }) {
   const { data, ix, dispatch } = useStore();
   const [panelOpen, setPanelOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryId, setCategoryId] = useState(categoryFilter);
   const [search, setSearch] = useState('');
 
   const period = resolvePeriod(data.settings.period, todayISO());
@@ -82,8 +82,9 @@ export function OperationsScreen({ prefill }: { prefill: Prefill | null }) {
           </div>
           <div className="summary">
             <Sum label="Доходы" value={t.income} cls="amount-income" sign="+" />
-            <Sum label="Расходы" value={t.expense} cls="" sign="−" hint={t.expenseLarge > 0 ? `из них крупные ${formatMoney(t.expenseLarge, { whole: true })}` : undefined} />
-            {t.investment > 0 && <Sum label="Вложено" value={t.investment} cls="amount-investment" />}
+            <Sum label="Повседневные" value={t.expenseDaily} cls="" sign="−" />
+            <Sum label="Крупные" value={t.expenseLarge} cls="" sign="−" />
+            <Sum label="Вложено" value={t.investment} cls="amount-investment" />
             <Sum label="Итог" value={Math.abs(t.result)} cls={t.result < 0 ? 'amount-expense' : 'amount-income'} sign={t.result < 0 ? '−' : '+'} />
           </div>
         </div>
@@ -137,15 +138,14 @@ export function OperationsScreen({ prefill }: { prefill: Prefill | null }) {
   );
 }
 
-function Sum({ label, value, cls, sign, hint }: { label: string; value: number; cls: string; sign?: string; hint?: string }) {
+function Sum({ label, value, cls, sign }: { label: string; value: number; cls: string; sign?: string }) {
   return (
     <div className="sum">
       <div className="sum-label">{label}</div>
-      <div className={`sum-value ${cls}`}>
+      <div className={`sum-value ${value === 0 ? 'zero' : cls}`}>
         {sign && value !== 0 ? sign : ''}
         {formatMoney(value, { whole: true })}
       </div>
-      {hint && <div className="sum-hint">{hint}</div>}
     </div>
   );
 }

@@ -14,8 +14,6 @@ export interface DataStorage {
 
 const KEY = 'finance-tracker-v2';
 const KEY_BEFORE_IMPORT = 'finance-tracker-v2:before-import';
-/** Ключи, под которыми хранила данные старая версия (v1.1). */
-export const LEGACY_KEYS = ['finance-analyzer-v3', 'finance-analyzer-v2'];
 
 function read(key: string): unknown | null {
   try {
@@ -39,12 +37,3 @@ export const localStorageStore: DataStorage = {
     }
   },
 };
-
-/** Данные старой версии, если она открывалась в этом же браузере. */
-export function readLegacyFromBrowser(): unknown | null {
-  for (const key of LEGACY_KEYS) {
-    const v = read(key);
-    if (v) return v;
-  }
-  return null;
-}

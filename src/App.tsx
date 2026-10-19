@@ -18,6 +18,8 @@ export function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [prefill, setPrefill] = useState<Prefill | null>(null);
   const [homeMonth, setHomeMonth] = useState(() => todayISO().slice(0, 7));
+  /** Категория, по которой открыть «Операции» (переход из вывода на Главной). */
+  const [opsCategory, setOpsCategory] = useState('');
   const inboxCount = data.operations.filter((op) => !op.subcategoryId).length;
 
   // При смене раздела начинаем сверху, а не с места, где остановились в прошлом разделе.
@@ -41,7 +43,10 @@ export function App() {
         <div className="brand">Финансы</div>
         <nav className="tabs" aria-label="Разделы">
           {tabs.map((t) => (
-            <button key={t.id} type="button" className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}>
+            <button key={t.id} type="button" className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => {
+                setOpsCategory('');
+                setTab(t.id);
+              }} aria-current={tab === t.id ? 'page' : undefined}>
               {t.label}
               {!!t.badge && <span className="tab-badge">{t.badge}</span>}
             </button>
@@ -61,9 +66,13 @@ export function App() {
               setPrefill((p) => ({ text: `${formatDate(iso).slice(0, 5)} `, n: (p?.n ?? 0) + 1 }));
               setTab('operations');
             }}
+            showCategory={(categoryId) => {
+              setOpsCategory(categoryId);
+              setTab('operations');
+            }}
           />
         )}
-        {tab === 'operations' && <OperationsScreen prefill={prefill} />}
+        {tab === 'operations' && <OperationsScreen prefill={prefill} categoryFilter={opsCategory} />}
         {tab === 'inbox' && <InboxScreen />}
         {tab === 'categories' && <CategoriesScreen />}
         {tab === 'settings' && <SettingsScreen onImported={() => setTab('operations')} />}

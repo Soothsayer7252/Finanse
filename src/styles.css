@@ -199,6 +199,103 @@ textarea {
 .narrow {
   max-width: 860px;
 }
+/* Карточка-раздел: заголовок, текст и кнопки с ровными отступами */
+.card.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.panel > .confirm {
+  margin-top: 0;
+}
+
+/* Настройки: лимиты и цель */
+.limits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+.limit-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+.limit-field label {
+  font-weight: 700;
+  color: var(--ink);
+}
+.limit-field .link {
+  padding: 0;
+  text-align: left;
+}
+.money-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: var(--field);
+  border: 1px solid var(--field-line);
+  border-radius: 14px;
+  padding: 0 14px;
+}
+.money-input:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(176, 122, 87, 0.18);
+}
+.money-input.invalid {
+  border-color: var(--expense);
+}
+.money-input input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  padding: 11px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.money-input input::placeholder {
+  color: var(--soft);
+  font-size: 15px;
+  font-weight: 500;
+}
+.money-input span {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.inline-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  color: var(--muted);
+  font-weight: 600;
+}
+.inline-field .input {
+  width: auto;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.limits-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--glass-line);
+  padding-top: 14px;
+}
+.limits-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
 .warn-card {
   color: var(--expense);
 }
@@ -429,21 +526,117 @@ select.input {
   flex-direction: column;
   gap: 10px;
 }
-.hero-row {
+/* Полоски «сколько из скольких» */
+.hero-side {
+  gap: 18px;
+}
+.limit-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.limit-bar-head {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--glass-line);
-  font-size: 16px;
+  font-size: 15px;
 }
-.hero-row b {
+.limit-bar-head b {
   color: var(--ink);
+}
+.limit-bar-head span {
+  color: #6d5548;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.limit-bar-note {
+  font-size: 14px;
+  color: var(--muted);
+}
+.limit-bar.tone-over .limit-bar-note {
+  color: var(--expense);
+  font-weight: 600;
+}
+.limit-bar.tone-warn .limit-bar-note {
+  color: var(--warn);
+}
+.bar {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(166, 126, 98, 0.16);
+}
+.bar-sm {
+  height: 8px;
+  margin: 4px 0 2px;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  max-width: 100%;
+}
+.fill-spend {
+  background: linear-gradient(90deg, #d9a27c, #b07a57);
+}
+.fill-over {
+  background: linear-gradient(90deg, #e09a7a, #b0442b);
+}
+.fill-income {
+  background: linear-gradient(90deg, #9cc79f, #3f7a4a);
+}
+.fill-up {
+  background: linear-gradient(90deg, #e8c08a, #c98a3c);
+}
+.fill-down {
+  background: linear-gradient(90deg, #b7d6b5, #5f9a62);
+}
+/* Риска: сколько месяца прошло / сколько обычно */
+.bar-marker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--ink);
+  opacity: 0.55;
 }
 .hero-note {
   font-size: 13px;
   color: var(--soft);
+}
+button.hero-note {
+  align-self: flex-start;
+  padding: 0;
+  font-size: 14px;
+  color: var(--primary);
+}
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px 14px;
+  flex-wrap: wrap;
+}
+.section-note {
+  padding-left: 6px;
+}
+.insight-numbers {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.insight-numbers b {
+  color: var(--ink);
+}
+.change-card .insight-body {
+  flex: 1;
+}
+.change-card .insight-detail {
+  font-size: 14px;
 }
 .insights {
   display: grid;
@@ -482,9 +675,18 @@ select.input {
   background: rgba(214, 165, 74, 0.28);
   color: var(--warn);
 }
-.insight-icon.ok {
+.insight-icon.ok,
+.insight-icon.down {
   background: rgba(63, 122, 74, 0.16);
   color: var(--income);
+}
+.insight-icon.up {
+  background: rgba(214, 165, 74, 0.25);
+  color: #8a5a1c;
+}
+.insight-icon.over {
+  background: rgba(176, 68, 43, 0.15);
+  color: var(--expense);
 }
 .insight-body {
   display: flex;
@@ -719,7 +921,7 @@ button.pchip:hover {
 }
 .summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
 }
 .sum {
@@ -734,10 +936,14 @@ button.pchip:hover {
   color: var(--muted);
 }
 .sum-value {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 800;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sum-value.zero {
+  color: var(--soft);
 }
 .sum-value.amount-income {
   color: var(--income);
@@ -747,10 +953,6 @@ button.pchip:hover {
 }
 .sum-value.amount-investment {
   color: var(--investment);
-}
-.sum-hint {
-  font-size: 12px;
-  color: var(--muted);
 }
 .filters {
   display: flex;
@@ -1287,11 +1489,14 @@ button.pchip:hover {
 }
 .sub-row {
   display: grid;
-  grid-template-columns: minmax(150px, 1fr) auto auto auto;
-  gap: 10px;
-  align-items: center;
-  padding: 4px 6px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: start;
+  padding: 6px;
   border-radius: 14px;
+}
+.sub-row > .chips {
+  padding-top: 6px;
 }
 .sub-row:hover {
   background: var(--hover);
@@ -1301,11 +1506,37 @@ button.pchip:hover {
 .wizard-sub .chips {
   flex-wrap: nowrap;
 }
-.sub-row .input-sm {
-  max-width: 130px;
+.sub-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+  padding-left: 12px;
+}
+.sub-meta .link {
+  padding: 0;
+}
+.sub-select {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  /* Без ширины список растягивается по самому длинному пункту. */
+  width: 172px;
+  max-width: 100%;
+}
+.link-danger {
+  color: var(--expense);
+}
+.sub-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 .sub-stat {
-  text-align: right;
   white-space: nowrap;
 }
 

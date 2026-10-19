@@ -4,9 +4,9 @@ import { formatDate, todayISO } from '../domain/dates';
 import { convertLegacy, type LegacyResult } from '../domain/legacy';
 import type { AppData } from '../domain/types';
 import { insideClaude, saveTextFile } from '../platform';
-import { readLegacyFromBrowser } from '../store/storage';
 import { useStore, useToast } from '../store/store';
 import { LegacyWizard } from './LegacyWizard';
+import { LimitsCard } from './LimitsCard';
 
 type Pending = { kind: 'native'; data: AppData; problems: string[] } | { kind: 'legacy'; result: LegacyResult };
 
@@ -15,7 +15,6 @@ export function SettingsScreen({ onImported }: { onImported: () => void }) {
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<Pending | null>(null);
-  const legacyInBrowser = useState(() => readLegacyFromBrowser())[0];
   const beforeImport = storage.loadBeforeImport();
 
   const download = async () => {
@@ -67,12 +66,15 @@ export function SettingsScreen({ onImported }: { onImported: () => void }) {
 
   return (
     <div className="stack narrow">
-      <div className="card">
-        <h2>Резервная копия</h2>
+      <LimitsCard />
+
+      <section className="card panel" aria-labelledby="backup-title">
+        <h2 id="backup-title">Резервная копия</h2>
         <p className="muted">
           {insideClaude
             ? 'Данные хранятся в этом браузере на этом устройстве: на телефоне и компьютере они разные. Время от времени скачивайте копию — из неё всё восстанавливается.'
-            : 'Данные хранятся только в этом браузере. Время от времени скачивайте копию: если браузер очистится, из неё всё восстанавливается.'}
+            : 'Данные хранятся только в этом браузере. Время от времени скачивайте копию: если браузер очистится, из неё всё восстанавливается.'}{' '}
+          Сюда же можно загрузить копию из старой версии — приложение само это поймёт и покажет, что перенесётся.
         </p>
         <div className="actions">
           <button type="button" className="btn btn-primary" onClick={download}>
@@ -122,23 +124,8 @@ export function SettingsScreen({ onImported }: { onImported: () => void }) {
             </button>
           </div>
         )}
-      </div>
+      </section>
 
-      <div className="card">
-        <h2>Перенос из старой версии</h2>
-        <p className="muted">
-          В старой версии откройте «Настройки» → «Выгрузить копию», затем загрузите этот файл кнопкой «Загрузить копию…» выше. Приложение само
-          поймёт, что файл из старой версии, и покажет, что и как перенесётся.
-        </p>
-        {legacyInBrowser != null && (
-          <div className="actions">
-            <span>В этом браузере найдены данные старой версии.</span>
-            <button type="button" className="btn btn-primary" onClick={() => openJson(legacyInBrowser)}>
-              Перенести их
-            </button>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

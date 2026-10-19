@@ -76,6 +76,24 @@ test.describe('Категории', () => {
     await expect(page.locator('.op-row', { hasText: 'Доставка' }).first()).toContainText('Транспорт');
   });
 
+  test('объединение подкатегорий: операции переходят, можно отменить', async ({ page }) => {
+    await page.locator('.cat-item', { hasText: 'Еда' }).click();
+    const delivIds = (await stored(page)).operations.filter((o: { comment: string }) => o.comment === 'пицца').map((o: { id: string }) => o.id);
+    expect(delivIds).toHaveLength(3);
+    await subRow(page, 'Доставка').locator('select').selectOption({ label: 'Еда › Супермаркеты' });
+    await expect(subRow(page, 'Доставка')).toHaveCount(0);
+    await expect(page.locator('.toast', { hasText: '«Доставка» объединена с «Супермаркеты»: перенесено операций 3' })).toBeVisible();
+    let data = await stored(page);
+    const market = data.subcategories.find((x: { name: string }) => x.name === 'Супермаркеты').id;
+    expect(data.operations.filter((o: { id: string }) => delivIds.includes(o.id)).every((o: { subcategoryId: string }) => o.subcategoryId === market)).toBe(true);
+    expect(data.subcategories.find((x: { name: string }) => x.name === 'Доставка')).toBeUndefined();
+
+    await page.locator('.toast').getByRole('button', { name: 'Отменить' }).click();
+    await expect(subRow(page, 'Доставка')).toBeVisible();
+    data = await stored(page);
+    expect(data.subcategories.find((x: { name: string }) => x.name === 'Доставка')).toBeTruthy();
+  });
+
   test('тип категории с операциями сменить нельзя, пустой — можно', async ({ page }) => {
     await page.locator('.cat-item', { hasText: 'Еда' }).click();
     await expect(page.locator('.chip', { hasText: 'Доход' })).toBeDisabled();

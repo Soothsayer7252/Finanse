@@ -98,6 +98,10 @@ test.describe('Список операций', () => {
     await expect(sums).toContainText('Вложено');
     await expect(sums.locator('.sum', { hasText: 'Вложено' })).toContainText('10 000 ₽');
     await expect(sums.locator('.sum', { hasText: 'Доходы' })).toContainText('+315 000 ₽');
+    await expect(sums.locator('.sum', { hasText: 'Крупные' })).toContainText('−45 000 ₽');
+    // Пять одинаковых карточек: подпись и сумма, без третьей строки.
+    await expect(sums.locator('.sum')).toHaveCount(5);
+    for (const sum of await sums.locator('.sum').all()) await expect(sum.locator('> *')).toHaveCount(2);
   });
 
   test('период: этот месяц, прошлый месяц, одна дата, ошибка в диапазоне', async ({ page }) => {

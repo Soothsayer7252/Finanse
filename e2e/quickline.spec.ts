@@ -124,12 +124,12 @@ test.describe('Главная', () => {
 
     await page.getByRole('button', { name: 'Прошлый месяц' }).click();
     await expect(page.locator('.month-name')).toHaveText('Сентябрь 2026');
-    await expect(page.locator('.hero-row', { hasText: 'Крупные покупки' })).toContainText('45 000 ₽');
+    await expect(page.locator('.limit-bar', { hasText: 'Крупные покупки' })).toContainText('45 000 ₽');
     // Месяц запоминается при уходе с Главной.
     await tab(page, 'Категории').click();
     await tab(page, 'Главная').click();
     await expect(page.locator('.month-name')).toHaveText('Сентябрь 2026');
-    await expect(page.locator('.hero-row')).toHaveCount(4);
+    await expect(page.locator('.limit-bar')).toHaveCount(3);
     await page.getByRole('button', { name: 'Следующий месяц' }).click();
     await expect(page.getByRole('button', { name: 'Следующий месяц' })).toBeDisabled();
 

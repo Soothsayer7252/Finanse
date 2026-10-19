@@ -89,6 +89,11 @@ function CategoryDetails({ cat, stats, onDeleted }: { cat: Category; stats: Map<
   const subs = data.subcategories.filter((s) => s.categoryId === cat.id).sort((a, b) => Number(a.archived) - Number(b.archived) || a.name.localeCompare(b.name, 'ru'));
   const hasOps = subs.some((s) => stats.has(s.id));
   const sameType = data.categories.filter((c) => c.type === cat.type && c.id !== cat.id);
+  // С кем можно объединить: подкатегории того же типа (сначала из этой категории).
+  const mergeTargets = data.subcategories
+    .map((sub) => ({ sub, cat: data.categories.find((c) => c.id === sub.categoryId)! }))
+    .filter((t) => t.cat?.type === cat.type)
+    .sort((a, b) => Number(b.cat.id === cat.id) - Number(a.cat.id === cat.id) || a.cat.name.localeCompare(b.cat.name, 'ru') || a.sub.name.localeCompare(b.sub.name, 'ru'));
 
   const addSub = () => {
     const name = newSub.trim();
@@ -154,7 +159,66 @@ function CategoryDetails({ cat, stats, onDeleted }: { cat: Category; stats: Map<
           const st = stats.get(s.id);
           return (
             <div key={s.id} className={`sub-row ${s.archived ? 'archived' : ''}`}>
-              <NameInput value={s.name} onSave={(name) => dispatch({ type: 'sub/update', id: s.id, patch: { name } })} />
+              <div className="sub-name">
+                <NameInput value={s.name} onSave={(name) => dispatch({ type: 'sub/update', id: s.id, patch: { name } })} />
+                <div className="sub-meta">
+                  <span className="muted small sub-stat">{st ? `${st.count} опер. · ${formatMoney(st.sum, { whole: true })}` : 'нет операций'}</span>
+                  {(sameType.length > 0 || mergeTargets.length > 1) && (
+                    <select
+                      className="sub-select"
+                      value=""
+                      aria-label="Перенести или объединить"
+                      onChange={(e) => {
+                        const [action, id] = e.target.value.split(':');
+                        if (action === 'move') {
+                          dispatch({ type: 'sub/update', id: s.id, patch: { categoryId: id } });
+                          toast({ text: `«${s.name}» перенесена вместе с операциями` });
+                        } else if (action === 'merge') {
+                          const target = mergeTargets.find((t) => t.sub.id === id);
+                          dispatch({ type: 'sub/merge', from: s.id, into: id });
+                          undoToast(`«${s.name}» объединена с «${target?.sub.name}»${st ? `: перенесено операций ${st.count}` : ''}`);
+                        }
+                      }}
+                    >
+                      <option value="">Перенести, объединить…</option>
+                      {sameType.length > 0 && (
+                        <optgroup label="Перенести в категорию (вместе с операциями)">
+                          {sameType.map((c) => (
+                            <option key={c.id} value={`move:${c.id}`}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="Объединить с подкатегорией (операции перейдут в неё)">
+                        {mergeTargets
+                          .filter((t) => t.sub.id !== s.id)
+                          .map((t) => (
+                            <option key={t.sub.id} value={`merge:${t.sub.id}`}>
+                              {t.cat.name} › {t.sub.name}
+                            </option>
+                          ))}
+                      </optgroup>
+                    </select>
+                  )}
+                  <button type="button" className="link small" onClick={() => dispatch({ type: 'sub/update', id: s.id, patch: { archived: !s.archived } })}>
+                    {s.archived ? 'Вернуть' : 'В архив'}
+                  </button>
+                  {!st && (
+                    <button
+                      type="button"
+                      className="link small link-danger"
+                      aria-label="Удалить"
+                      onClick={() => {
+                        dispatch({ type: 'sub/delete', id: s.id });
+                        undoToast('Подкатегория удалена');
+                      }}
+                    >
+                      Удалить
+                    </button>
+                  )}
+                </div>
+              </div>
               {cat.type === 'expense' && (
                 <div className="chips">
                   {(['daily', 'large'] as ExpenseGroup[]).map((g) => (
@@ -173,46 +237,6 @@ function CategoryDetails({ cat, stats, onDeleted }: { cat: Category; stats: Map<
                   ))}
                 </div>
               )}
-              {cat.type === 'investment' && <span />}
-              <span className="muted small sub-stat">{st ? `${st.count} опер. · ${formatMoney(st.sum)}` : 'нет операций'}</span>
-              <div className="actions">
-                {sameType.length > 0 && (
-                  <select
-                    className="input input-sm"
-                    value=""
-                    aria-label="Перенести в категорию"
-                    onChange={(e) => {
-                      if (!e.target.value) return;
-                      dispatch({ type: 'sub/update', id: s.id, patch: { categoryId: e.target.value } });
-                      toast({ text: `«${s.name}» перенесена вместе с операциями` });
-                    }}
-                  >
-                    <option value="">Перенести…</option>
-                    {sameType.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => dispatch({ type: 'sub/update', id: s.id, patch: { archived: !s.archived } })}>
-                  {s.archived ? 'Вернуть' : 'В архив'}
-                </button>
-                {!st && (
-                  <button
-                    type="button"
-                    className="icon-btn icon-danger"
-                    aria-label="Удалить"
-                    title="Удалить"
-                    onClick={() => {
-                      dispatch({ type: 'sub/delete', id: s.id });
-                      undoToast('Подкатегория удалена');
-                    }}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
             </div>
           );
         })}
