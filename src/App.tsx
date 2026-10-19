@@ -17,6 +17,7 @@ export function App() {
   const { data, saveError } = useStore();
   const [tab, setTab] = useState<Tab>('home');
   const [prefill, setPrefill] = useState<Prefill | null>(null);
+  const [homeMonth, setHomeMonth] = useState(() => todayISO().slice(0, 7));
   const inboxCount = data.operations.filter((op) => !op.subcategoryId).length;
 
   // При смене раздела начинаем сверху, а не с места, где остановились в прошлом разделе.
@@ -53,6 +54,8 @@ export function App() {
       <ErrorBoundary resetKey={tab} onBackup={() => saveTextFile(`finance-backup-${todayISO()}.json`, makeBackup(data))}>
         {tab === 'home' && (
           <HomeScreen
+            month={homeMonth}
+            setMonth={setHomeMonth}
             goTo={setTab}
             addForDate={(iso) => {
               setPrefill((p) => ({ text: `${formatDate(iso).slice(0, 5)} `, n: (p?.n ?? 0) + 1 }));

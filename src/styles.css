@@ -375,7 +375,7 @@ select.input {
   display: flex;
   gap: 40px;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   padding: 30px 34px;
 }
 .hero-main {

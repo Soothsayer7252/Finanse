@@ -1,6 +1,6 @@
 // Главная: только обзор месяца. Ввода и списка операций здесь нет — они в «Операциях».
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { addMonths, formatDaysList, formatDate, periodLabel, todayISO, endOfMonth } from '../domain/dates';
 import { formatMoney } from '../domain/money';
 import { monthSummary } from '../domain/month';
@@ -9,15 +9,17 @@ import { useStore } from '../store/store';
 type Tab = 'operations' | 'inbox' | 'categories' | 'settings';
 
 interface Props {
+  /** Выбранный месяц 'ГГГГ-ММ' — хранится выше, чтобы не сбрасывался при уходе с Главной. */
+  month: string;
+  setMonth: (m: string) => void;
   goTo: (tab: Tab) => void;
   /** Перейти в «Операции» и начать ввод за этот день. */
   addForDate: (iso: string) => void;
 }
 
-export function HomeScreen({ goTo, addForDate }: Props) {
+export function HomeScreen({ month, setMonth, goTo, addForDate }: Props) {
   const { data, ix } = useStore();
   const today = todayISO();
-  const [month, setMonth] = useState(today.slice(0, 7));
   const s = useMemo(() => monthSummary(data.operations, ix, month, today), [data.operations, ix, month, today]);
   const t = s.totals;
   const inboxCount = data.operations.filter((op) => !op.subcategoryId).length;
@@ -77,7 +79,7 @@ export function HomeScreen({ goTo, addForDate }: Props) {
           <div className="hero-side">
             <Row label="Повседневные траты" value={t.expenseDaily} />
             <Row label="Крупные покупки" value={t.expenseLarge} />
-            {t.investment > 0 && <Row label="Вложено" value={t.investment} />}
+            <Row label="Вложено" value={t.investment} />
             <Row label="Доходы" value={t.income} income />
             <p className="hero-note">Лимиты и цель по доходу появятся на следующем шаге — тогда здесь будут полоски «сколько из скольких».</p>
           </div>
