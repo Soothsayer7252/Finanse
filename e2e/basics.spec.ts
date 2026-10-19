@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { REAL_BACKUP, expect, importLegacy, legacySample, openApp, stored, tab, tempJson, test } from './helpers';
 
-const TABS = ['Операции', 'Входящие', 'Категории', 'Настройки'];
+const TABS = ['Главная', 'Операции', 'Входящие', 'Категории', 'Настройки'];
 
 test.describe('Запуск и разделы', () => {
   test('все разделы открываются в пустом приложении', async ({ page, errors }) => {
@@ -59,6 +59,7 @@ test.describe('Перенос из старой версии', () => {
     await importLegacy(page, tempJson(legacySample()));
     await page.reload();
     expect((await stored(page)).operations).toHaveLength(59);
+    await tab(page, 'Операции').click();
     await expect(page.locator('.op-row').first()).toBeVisible();
     await expect(page.getByText('Добро пожаловать!')).toHaveCount(0);
   });

@@ -1,4 +1,5 @@
-// Панель «Новая операция»: всегда под рукой слева от списка.
+// Запасной способ ввода: боковая панель «Новая операция» с полями по одному.
+// Открывается кнопкой «+ Новая операция» или клавишей N.
 
 import { useState } from 'react';
 import { formatDate } from '../domain/dates';
@@ -9,12 +10,11 @@ import { useStore, useUndoToast } from '../store/store';
 import { CategoryIcon } from './CategoryIcon';
 import { EntryForm } from './EntryForm';
 
-export function QuickEntry() {
+export function EntryPanel({ onClose }: { onClose: () => void }) {
   const { data, ix, options, dispatch } = useStore();
   const undoToast = useUndoToast();
-  /** Операции, добавленные за этот сеанс, — чтобы видеть, что уже введено. */
+  /** Операции, добавленные, пока панель открыта. */
   const [added, setAdded] = useState<string[]>([]);
-  const [showHelp, setShowHelp] = useState(false);
 
   const recent = added
     .map((id) => data.operations.find((o) => o.id === id))
@@ -23,31 +23,20 @@ export function QuickEntry() {
     .reverse();
 
   return (
-    <aside className="card entry-card">
+    <aside className="card entry-card" aria-label="Новая операция">
       <div className="card-head">
         <h2>Новая операция</h2>
-        <button type="button" className="link" onClick={() => setShowHelp((s) => !s)}>
-          {showHelp ? 'Скрыть' : 'Подсказки'}
+        <button type="button" className="icon-btn" aria-label="Закрыть" title="Закрыть (Esc)" onClick={onClose}>
+          ×
         </button>
       </div>
-      {showHelp && (
-        <ul className="help">
-          <li>
-            <b>Enter</b> — к следующему полю, в комментарии — сохранить. <b>Ctrl+Enter</b> — сохранить сразу.
-          </li>
-          <li>Дата остаётся от прошлой операции: удобно вносить пропущенные дни подряд.</li>
-          <li>Категорию ищите по первым буквам: «дос» → Доставка. Пустая категория — операция попадёт во «Входящие».</li>
-          <li>
-            В сумме работает калькулятор: <b>350+120</b> = 470.
-          </li>
-        </ul>
-      )}
       <EntryForm
         layout="stack"
         initial={{ date: data.settings.lastDate, amountText: '', subId: null, comment: '', income: false }}
         options={options}
         autoFocus
         submitLabel="Добавить"
+        onCancel={onClose}
         onSubmit={(r) => {
           const op = newOperation(r);
           dispatch({ type: 'op/add', op });
@@ -57,7 +46,7 @@ export function QuickEntry() {
       />
       {recent.length > 0 && (
         <div className="recent">
-          <div className="recent-title">Только что добавлено</div>
+          <div className="recent-title">Добавлено сейчас</div>
           {recent.map((op) => {
             const sub = op.subcategoryId ? ix.sub.get(op.subcategoryId) : undefined;
             const cat = sub ? ix.cat.get(sub.categoryId) : undefined;

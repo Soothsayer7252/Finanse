@@ -1,86 +1,39 @@
-/* Оформление «тёплое, как старая версия»: бежевый фон, коричневые чернила, карамельный акцент.
-   Раскладка: форма ввода слева (прилипает при прокрутке), список операций справа. */
+/* Оформление «Васик»: фото кота на весь фон под кремовой дымкой, панели — матовое стекло,
+   палитра старой темы Васика (коричневый текст, карамельные акценты).
+   Тема одна и светлая — так задумано, поэтому цвета заданы явно, без тёмного варианта. */
 
 :root {
-  --bg: #f4e9dd;
-  --bg-glow: #fbf4ec;
-  --surface: #fffaf4;
-  --surface-2: #f7ece0;
-  --line: #ead9c6;
-  --ink: #4a3326;
-  --ink-soft: #8c7261;
-  --accent: #b5703d;
-  --accent-ink: #ffffff;
-  --accent-soft: #f5e1cd;
-  --income: #2e8553;
-  --expense: #c0503a;
-  --investment: #7656b8;
-  --selected: #fbe7c9;
-  --danger-soft: #f9e0d9;
-  --shadow: 0 1px 2px rgba(90, 55, 30, 0.06), 0 8px 24px rgba(90, 55, 30, 0.07);
-  --tint-1: #fde3d3;
-  --tint-2: #f9e8c4;
-  --tint-3: #dcebd6;
-  --tint-4: #dbe7f3;
-  --tint-5: #ecdff4;
-  --tint-6: #f6dcdf;
-  --font: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --radius: 18px;
+  --ink: #4a372e;
+  --text: #5a463d;
+  --muted: #8a7062;
+  --soft: #a08878;
+  --accent: #b07a57;
+  --primary: #6b4a38;
+  --on-primary: #fff8f1;
+  --accent-soft: rgba(214, 185, 162, 0.38);
+  --income: #3f7a4a;
+  --expense: #b0442b;
+  --investment: #7a5aa8;
+  --warn: #9a5a12;
+  --glass: rgba(255, 249, 243, 0.74);
+  --glass-strong: rgba(255, 250, 245, 0.94);
+  --glass-line: rgba(163, 120, 92, 0.16);
+  --field: rgba(255, 252, 248, 0.9);
+  --field-line: rgba(166, 126, 98, 0.22);
+  --hover: rgba(214, 185, 162, 0.22);
+  --selected: rgba(232, 190, 140, 0.4);
+  --danger-soft: rgba(176, 68, 43, 0.12);
+  --shadow: 0 18px 40px rgba(125, 89, 63, 0.12);
+  --shadow-pop: 0 18px 50px rgba(90, 60, 40, 0.22);
+  --tint-1: rgba(232, 180, 140, 0.5);
+  --tint-2: rgba(240, 210, 140, 0.55);
+  --tint-3: rgba(170, 205, 165, 0.55);
+  --tint-4: rgba(170, 196, 214, 0.55);
+  --tint-5: rgba(200, 176, 214, 0.55);
+  --tint-6: rgba(230, 170, 190, 0.5);
+  --font: 'Onest', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --radius: 28px;
   color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #1c1612;
-    --bg-glow: #261d17;
-    --surface: #261e19;
-    --surface-2: #30261f;
-    --line: #3e3229;
-    --ink: #f3e7dc;
-    --ink-soft: #b49e8d;
-    --accent: #e3a56f;
-    --accent-ink: #2a1b10;
-    --accent-soft: #43311f;
-    --income: #72d29c;
-    --expense: #f08b74;
-    --investment: #bba0f3;
-    --selected: #4a3720;
-    --danger-soft: #4d2a22;
-    --shadow: none;
-    --tint-1: #4a3226;
-    --tint-2: #4a3d22;
-    --tint-3: #2d3f2c;
-    --tint-4: #2a3747;
-    --tint-5: #3d3049;
-    --tint-6: #4a2d33;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme='dark'] {
-  --bg: #1c1612;
-  --bg-glow: #261d17;
-  --surface: #261e19;
-  --surface-2: #30261f;
-  --line: #3e3229;
-  --ink: #f3e7dc;
-  --ink-soft: #b49e8d;
-  --accent: #e3a56f;
-  --accent-ink: #2a1b10;
-  --accent-soft: #43311f;
-  --income: #72d29c;
-  --expense: #f08b74;
-  --investment: #bba0f3;
-  --selected: #4a3720;
-  --danger-soft: #4d2a22;
-  --shadow: none;
-  --tint-1: #4a3226;
-  --tint-2: #4a3d22;
-  --tint-3: #2d3f2c;
-  --tint-4: #2a3747;
-  --tint-5: #3d3049;
-  --tint-6: #4a2d33;
-  color-scheme: dark;
 }
 
 * {
@@ -89,12 +42,29 @@
 
 body {
   margin: 0;
-  background-color: var(--bg);
-  background-image: radial-gradient(1200px 600px at 15% -10%, var(--bg-glow), transparent 70%);
-  background-attachment: fixed;
-  color: var(--ink);
+  background: #f6ece2;
+  color: var(--text);
   font: 15px/1.45 var(--font);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Васик на весь экран, неподвижно при прокрутке, под кремовой дымкой — как в старой теме. */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+body::before {
+  z-index: -2;
+  background: #f6ece2 url('./assets/vasik.webp') center / cover no-repeat;
+  filter: saturate(0.94) brightness(1.02);
+  transform: scale(1.015);
+}
+body::after {
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(251, 245, 238, 0.72) 0%, rgba(246, 236, 226, 0.8) 100%);
 }
 
 h1,
@@ -102,10 +72,11 @@ h2,
 h3 {
   margin: 0;
   line-height: 1.2;
+  color: var(--ink);
   text-wrap: balance;
 }
 h2 {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 800;
 }
 h3 {
@@ -116,10 +87,10 @@ h3 {
 p {
   margin: 0;
 }
-
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
   color: inherit;
 }
@@ -131,52 +102,59 @@ select {
 .app {
   max-width: 1240px;
   margin: 0 auto;
-  padding-block: 18px 120px;
+  padding-block: 20px 120px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Стекло */
+.card,
+.topbar,
+.popover,
+.lookup-list,
+.bulk-bar {
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+.card {
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  min-width: 0;
 }
 
 /* Верхняя панель */
 .topbar {
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: space-between;
+  gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  border-radius: 999px;
+  padding: 8px 10px 8px 24px;
 }
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 800;
-}
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 18px;
+  color: var(--ink);
 }
 .tabs {
   display: flex;
   gap: 4px;
-  padding: 4px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 999px;
   flex-wrap: wrap;
 }
 .tab {
   border: none;
   background: none;
   border-radius: 999px;
-  padding: 7px 16px;
-  font-weight: 700;
-  color: var(--ink-soft);
+  padding: 9px 16px;
+  font-weight: 600;
+  color: var(--muted);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -184,27 +162,17 @@ select {
   color: var(--ink);
 }
 .tab.active {
-  background: var(--surface);
+  background: var(--accent-soft);
   color: var(--ink);
-  box-shadow: var(--shadow);
 }
 .tab-badge {
   margin-left: 6px;
   background: var(--accent);
-  color: var(--accent-ink);
+  color: var(--on-primary);
   border-radius: 999px;
   padding: 0 7px;
   font-size: 12px;
-}
-
-/* Карточки */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px;
-  min-width: 0;
+  font-weight: 700;
 }
 .card-head {
   display: flex;
@@ -217,14 +185,22 @@ select {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
+}
+.stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.section-title {
+  font-size: 20px;
+  padding-left: 6px;
 }
 .narrow {
-  max-width: 840px;
+  max-width: 860px;
 }
 .warn-card {
   color: var(--expense);
-  margin-bottom: 16px;
 }
 
 /* Кнопки и поля */
@@ -232,24 +208,30 @@ select {
 .chip {
   cursor: pointer;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  padding: 8px 16px;
+  border: 1px solid var(--field-line);
+  background: var(--field);
+  padding: 9px 16px;
   font-weight: 700;
+  color: var(--text);
   white-space: nowrap;
 }
 .btn:hover,
 .chip:hover {
-  border-color: var(--ink-soft);
+  border-color: var(--accent);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 .btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 8px 20px rgba(107, 74, 56, 0.22);
 }
 .btn-primary:hover {
-  filter: brightness(1.06);
-  border-color: var(--accent);
+  filter: brightness(1.1);
+  border-color: var(--primary);
 }
 .btn-ghost {
   background: transparent;
@@ -261,16 +243,16 @@ select {
 }
 .btn-sm,
 .chip-sm {
-  padding: 4px 12px;
+  padding: 5px 12px;
   font-size: 13px;
 }
 .chip {
   font-weight: 600;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 .chip.active {
   background: var(--accent-soft);
-  border-color: var(--accent);
+  border-color: rgba(166, 126, 98, 0.45);
   color: var(--ink);
 }
 .chip:disabled {
@@ -287,7 +269,7 @@ select {
   border: none;
   background: none;
   padding: 2px 4px;
-  color: var(--accent);
+  color: var(--primary);
   font-weight: 700;
   cursor: pointer;
 }
@@ -297,18 +279,22 @@ select {
 .icon-btn {
   border: none;
   background: none;
-  color: var(--ink-soft);
+  color: var(--muted);
   cursor: pointer;
   border-radius: 10px;
-  width: 30px;
-  height: 30px;
-  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
   line-height: 1;
   flex: none;
 }
 .icon-btn:hover {
-  background: var(--danger-soft);
-  color: var(--expense);
+  background: var(--hover);
+  color: var(--ink);
+}
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 .actions {
   display: flex;
@@ -317,25 +303,21 @@ select {
   align-items: center;
 }
 .input {
-  background: var(--surface-2);
-  border: 1px solid transparent;
-  border-radius: 12px;
-  padding: 9px 12px;
+  background: var(--field);
+  border: 1px solid var(--field-line);
+  border-radius: 14px;
+  padding: 10px 14px;
   width: 100%;
   min-width: 0;
+  color: var(--ink);
 }
 .input::placeholder {
-  color: var(--ink-soft);
-  opacity: 0.75;
-}
-.input:hover {
-  border-color: var(--line);
+  color: var(--soft);
 }
 .input:focus {
   outline: none;
   border-color: var(--accent);
-  background: var(--surface);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  box-shadow: 0 0 0 3px rgba(176, 122, 87, 0.18);
 }
 .input-error {
   border-color: var(--expense);
@@ -344,6 +326,7 @@ select {
   padding: 4px 8px;
   font-size: 13px;
   width: auto;
+  border-radius: 10px;
 }
 select.input {
   cursor: pointer;
@@ -353,7 +336,7 @@ select.input {
   flex-direction: column;
   gap: 4px;
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--muted);
   font-weight: 600;
 }
 .field-row {
@@ -364,7 +347,7 @@ select.input {
   margin-bottom: 12px;
 }
 .muted {
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 .small {
   font-size: 13px;
@@ -375,22 +358,421 @@ select.input {
 .empty {
   padding: 36px 16px;
   text-align: center;
-  color: var(--ink-soft);
+  color: var(--muted);
+}
+.amount-income {
+  color: var(--income);
+}
+.amount-expense {
+  color: var(--expense);
+}
+.amount-investment {
+  color: var(--investment);
 }
 
-/* Экран операций: форма слева, список справа */
-.ops-layout {
+/* Главная */
+.hero {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 30px 34px;
+}
+.hero-main {
+  flex: 1 1 420px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.month-switch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  background: var(--field);
+  border: 1px solid var(--field-line);
+  border-radius: 999px;
+  padding: 2px;
+}
+.month-name {
+  font-weight: 700;
+  color: var(--ink);
+  padding: 0 6px;
+  min-width: 130px;
+  text-align: center;
+}
+.hero-title {
+  font-size: 50px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  color: var(--ink);
+}
+.hero-title-sm {
+  font-size: 30px;
+}
+.hero-sub {
+  font-size: 17px;
+  color: var(--muted);
+}
+.hero-sub b {
+  color: var(--ink);
+}
+.hero-sub b.amount-income {
+  color: var(--income);
+}
+.hero-side {
+  flex: 1 1 340px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hero-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--glass-line);
+  font-size: 16px;
+}
+.hero-row b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.hero-note {
+  font-size: 13px;
+  color: var(--soft);
+}
+.insights {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+}
+.insight {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  border-radius: 24px;
+  text-align: left;
+}
+.insight-link {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.insight-link:hover {
+  border-color: var(--accent);
+}
+.insight-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 800;
+  background: var(--accent-soft);
+  color: var(--primary);
+  flex: none;
+}
+.insight-icon.warn {
+  background: rgba(214, 165, 74, 0.28);
+  color: var(--warn);
+}
+.insight-icon.ok {
+  background: rgba(63, 122, 74, 0.16);
+  color: var(--income);
+}
+.insight-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.insight-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.insight-detail {
+  font-size: 15px;
+  color: var(--muted);
+}
+.welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 30px;
+}
+
+/* Строка ввода текстом */
+.quick-line {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+}
+.ql-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.ql-input {
+  font-size: 21px;
+  font-weight: 600;
+  border: 2px solid var(--accent);
+  border-radius: 18px;
+  padding: 14px 18px;
+  resize: none;
+  line-height: 1.4;
+}
+.ql-add {
+  padding: 17px 22px;
+  border-radius: 16px;
+  font-size: 16px;
+  flex: none;
+}
+.ql-preview {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 0 4px;
+  min-height: 34px;
+}
+.pchip {
+  border: 1px solid var(--field-line);
+  background: var(--field);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+button.pchip:hover {
+  border-color: var(--accent);
+}
+.pchip-amount {
+  background: var(--accent-soft);
+  font-weight: 800;
+  cursor: default;
+}
+.pchip-cat {
+  background: var(--tint-1);
+  font-weight: 700;
+}
+.pchip-warn {
+  background: rgba(214, 165, 74, 0.25);
+  color: var(--warn);
+}
+.pchip-alt {
+  background: transparent;
+  border-style: dashed;
+  color: var(--muted);
+}
+.pchip-note {
+  color: var(--muted);
+  cursor: default;
+}
+.pchip-error {
+  background: var(--danger-soft);
+  color: var(--expense);
+  cursor: default;
+}
+.shake {
+  animation: shake 0.3s;
+}
+@keyframes shake {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+.chip-editor {
+  width: 260px;
+}
+.chip-date {
+  width: auto;
+  padding: 5px 10px;
+}
+.ql-hint {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 0 4px;
+}
+.ql-hint b {
+  color: var(--text);
+}
+.ql-review {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ql-review-row {
+  display: grid;
+  grid-template-columns: 12px auto 110px minmax(160px, auto) minmax(0, 1fr) 32px;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 14px;
+}
+.ql-review-row:hover {
+  background: var(--hover);
+}
+.ql-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--income);
+}
+.st-unsure .ql-dot {
+  background: #d6a54a;
+}
+.st-error .ql-dot {
+  background: var(--expense);
+}
+.st-error .ql-amount {
+  color: var(--expense);
+}
+.ql-amount {
+  font-weight: 800;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.ql-note {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 4px;
+}
+.recent-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--soft);
+}
+.recent-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.recent-list .recent-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--field);
+  border: 1px solid var(--field-line);
+  border-radius: 999px;
+  padding: 0 4px 0 12px;
+  font-size: 14px;
+}
+.recent-list .icon-btn {
+  width: 26px;
+  height: 26px;
+  font-size: 16px;
+}
+
+/* Операции: список и боковая панель */
+.ops-body {
+  display: flex;
   gap: 18px;
-  align-items: start;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.list-card {
+  flex: 999 1 560px;
 }
 .entry-card {
+  flex: 1 1 320px;
+  max-width: 380px;
   position: sticky;
   top: calc(16px + env(safe-area-inset-top, 0px));
+  background: var(--glass-strong);
+  box-shadow: var(--shadow-pop);
+}
+.list-head {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.list-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+.sum {
+  background: var(--field);
+  border: 1px solid var(--field-line);
+  border-radius: 16px;
+  padding: 10px 14px;
+}
+.sum-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.sum-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.sum-value.amount-income {
+  color: var(--income);
+}
+.sum-value.amount-expense {
+  color: var(--expense);
+}
+.sum-value.amount-investment {
+  color: var(--investment);
+}
+.sum-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 6px;
+}
+.filters-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-select {
+  width: auto;
+  flex: 0 1 220px;
+}
+.filter-search {
+  flex: 1 1 200px;
+  width: auto;
 }
 
-/* Форма операции */
+/* Форма операции (панель и правка в строке) */
 .entry {
   display: flex;
   flex-direction: column;
@@ -410,13 +792,14 @@ select.input {
 }
 .entry-label {
   font-size: 13px;
-  font-weight: 700;
-  color: var(--ink-soft);
+  font-weight: 600;
+  color: var(--muted);
 }
 .seg {
   display: inline-flex;
   align-items: center;
-  background: var(--surface-2);
+  background: var(--field);
+  border: 1px solid var(--field-line);
   border-radius: 999px;
   padding: 2px;
 }
@@ -424,16 +807,15 @@ select.input {
   border: none;
   background: none;
   border-radius: 999px;
-  padding: 3px 10px;
+  padding: 4px 12px;
   font-size: 13px;
   font-weight: 700;
-  color: var(--ink-soft);
+  color: var(--muted);
   cursor: pointer;
 }
 .seg button.on {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: var(--shadow);
+  background: var(--primary);
+  color: var(--on-primary);
 }
 .seg button:disabled {
   cursor: default;
@@ -451,6 +833,7 @@ select.input {
   font-size: 26px;
   font-weight: 800;
   padding: 10px 70px 10px 14px;
+  border: 2px solid var(--accent);
   font-variant-numeric: tabular-nums;
 }
 .entry-currency {
@@ -458,7 +841,7 @@ select.input {
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--ink-soft);
+  color: var(--muted);
   font-weight: 700;
   pointer-events: none;
 }
@@ -468,7 +851,11 @@ select.input {
   align-items: center;
 }
 .entry-date {
-  flex: 1;
+  flex: 1 1 150px;
+  min-width: 150px;
+}
+.entry-card .entry-date-row {
+  flex-wrap: wrap;
 }
 .entry-error {
   color: var(--expense);
@@ -481,10 +868,10 @@ select.input {
 }
 .entry-submit {
   flex: 1;
-  padding: 11px 16px;
+  padding: 12px 16px;
   font-size: 16px;
+  border-radius: 16px;
 }
-/* Та же форма в строке списка при правке */
 .entry-inline {
   display: grid;
   grid-template-columns: minmax(160px, 220px) minmax(180px, 1fr) auto;
@@ -506,41 +893,17 @@ select.input {
 }
 .entry-inline .entry-submit {
   font-size: 15px;
-  padding: 9px 16px;
+  padding: 10px 16px;
 }
 .entry-inline .entry-error {
   grid-column: 1 / -1;
 }
-.help {
-  margin: 0 0 14px;
-  padding: 12px 14px 12px 30px;
-  background: var(--surface-2);
-  border-radius: 12px;
-  color: var(--ink-soft);
-  font-size: 13px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.entry-card .recent {
+  margin-top: 16px;
+  padding: 14px 0 0;
+  border-top: 1px dashed var(--field-line);
 }
-
-/* Только что добавлено */
-.recent {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px dashed var(--line);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.recent-title {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ink-soft);
-  margin-bottom: 4px;
-}
-.recent-item {
+.entry-card .recent-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -572,17 +935,16 @@ select.input {
   max-width: min(420px, 90vw);
   max-height: 320px;
   overflow: auto;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: 0 12px 36px rgba(60, 35, 15, 0.18);
+  background: var(--glass-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow-pop);
   padding: 4px;
 }
 .lookup-option {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   border-radius: 10px;
   cursor: pointer;
 }
@@ -591,9 +953,10 @@ select.input {
 }
 .lookup-sub {
   font-weight: 700;
+  color: var(--ink);
 }
 .lookup-cat {
-  color: var(--ink-soft);
+  color: var(--muted);
   font-size: 13px;
   margin-left: auto;
   padding-left: 18px;
@@ -603,7 +966,7 @@ select.input {
   height: 8px;
   border-radius: 50%;
   flex: none;
-  background: var(--ink-soft);
+  background: var(--soft);
 }
 .dot-income {
   background: var(--income);
@@ -616,7 +979,7 @@ select.input {
 .cat-icon {
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 13px;
   flex: none;
   font-weight: 800;
   color: var(--ink);
@@ -631,11 +994,12 @@ select.input {
   width: 26px;
   height: 26px;
   font-size: 13px;
+  border-radius: 8px;
 }
 .cat-icon-empty {
-  background: var(--surface-2);
-  border: 1.5px dashed var(--ink-soft);
-  color: var(--ink-soft);
+  background: var(--field);
+  border: 1.5px dashed var(--soft);
+  color: var(--muted);
 }
 .tint-1 { background: var(--tint-1); }
 .tint-2 { background: var(--tint-2); }
@@ -644,99 +1008,38 @@ select.input {
 .tint-5 { background: var(--tint-5); }
 .tint-6 { background: var(--tint-6); }
 
-/* Шапка списка: период и итоги */
-.list-head {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-.summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
-}
-.sum {
-  background: var(--surface-2);
-  border-radius: 14px;
-  padding: 10px 14px;
-}
-.sum-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink-soft);
-}
-.sum-value {
-  font-size: 21px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-.sum-hint {
-  font-size: 12px;
-  color: var(--ink-soft);
-}
-.amount-income {
-  color: var(--income);
-}
-.amount-expense {
-  color: var(--expense);
-}
-.amount-investment {
-  color: var(--investment);
-}
-
-.filters {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-bottom: 6px;
-}
-.filters-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.filter-select {
-  width: auto;
-  flex: 0 1 220px;
-}
-.filter-search {
-  flex: 1 1 200px;
-  width: auto;
-}
-
 /* Список операций */
 .op-day {
-  margin-top: 18px;
+  margin-top: 16px;
 }
 .op-day-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 0 8px 6px;
-  font-weight: 800;
-  font-size: 14px;
+  padding: 0 10px 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted);
 }
 .op-day-total {
-  color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
 .op-row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto auto 30px;
+  grid-template-columns: 44px minmax(0, 1fr) auto auto 32px;
   gap: 12px;
   align-items: center;
-  padding: 6px 8px;
-  border-radius: 14px;
+  padding: 6px 10px;
+  border-radius: 16px;
 }
 .op-row:hover {
-  background: var(--surface-2);
+  background: var(--hover);
 }
 .op-row.selected {
   background: var(--selected);
 }
 .op-row-inbox {
-  grid-template-columns: 44px minmax(0, 1fr) 240px auto auto 30px;
+  grid-template-columns: 44px minmax(0, 1fr) 240px auto auto 32px;
 }
 .op-icon {
   position: relative;
@@ -744,7 +1047,7 @@ select.input {
   background: none;
   padding: 0;
   cursor: pointer;
-  border-radius: 50%;
+  border-radius: 13px;
   width: 40px;
   height: 40px;
 }
@@ -753,9 +1056,9 @@ select.input {
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
+  border-radius: 13px;
+  background: var(--primary);
+  color: var(--on-primary);
   font-weight: 800;
   opacity: 0;
   transition: opacity 0.12s;
@@ -765,9 +1068,6 @@ select.input {
 }
 .op-row.selected .op-tick {
   opacity: 1;
-}
-.is-selecting .op-icon .op-cat-hint {
-  display: none;
 }
 .op-body {
   display: flex;
@@ -789,10 +1089,11 @@ select.input {
 }
 .op-title {
   font-weight: 700;
+  color: var(--ink);
 }
 .op-subtitle {
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--muted);
 }
 .op-tags {
   display: flex;
@@ -802,11 +1103,11 @@ select.input {
   font-size: 12px;
   font-weight: 700;
   border-radius: 999px;
-  padding: 1px 8px;
+  padding: 2px 9px;
 }
 .tag-large {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--primary);
 }
 .tag-invest {
   background: var(--tint-5);
@@ -829,9 +1130,9 @@ select.input {
   opacity: 1;
 }
 .op-edit {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  background: var(--glass-strong);
+  border: 1px solid var(--field-line);
+  border-radius: 18px;
   padding: 14px;
   margin: 4px 0;
 }
@@ -839,8 +1140,6 @@ select.input {
   display: block;
   margin: 18px auto 0;
 }
-
-/* Панель действий с выделенными */
 .bulk-bar {
   position: fixed;
   left: 0;
@@ -854,10 +1153,10 @@ select.input {
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
-  background: var(--surface);
-  border: 1px solid var(--accent);
-  border-radius: 18px;
-  box-shadow: 0 14px 40px rgba(60, 35, 15, 0.22);
+  background: var(--glass-strong);
+  border-color: var(--accent);
+  border-radius: 20px;
+  box-shadow: var(--shadow-pop);
   padding: 10px 12px 10px 16px;
 }
 .bulk-info {
@@ -874,14 +1173,12 @@ select.input {
 /* Период */
 .period {
   position: relative;
-  align-self: flex-start;
 }
 .period-button {
   font-size: 16px;
   font-weight: 800;
   padding: 8px 16px;
-  background: var(--surface-2);
-  border-color: transparent;
+  color: var(--ink);
 }
 .period-button .muted {
   font-weight: 600;
@@ -891,10 +1188,9 @@ select.input {
   left: 0;
   top: calc(100% + 8px);
   z-index: 50;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 14px 40px rgba(60, 35, 15, 0.2);
+  background: var(--glass-strong);
+  border-radius: 22px;
+  box-shadow: var(--shadow-pop);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -946,8 +1242,8 @@ select.input {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ink-soft);
-  margin: 0 0 4px 10px;
+  color: var(--soft);
+  margin: 0 0 4px 12px;
 }
 .cat-item {
   display: flex;
@@ -955,14 +1251,15 @@ select.input {
   width: 100%;
   border: none;
   background: none;
-  padding: 8px 12px;
-  border-radius: 12px;
+  padding: 9px 12px;
+  border-radius: 14px;
   cursor: pointer;
   text-align: left;
   font-weight: 700;
+  color: var(--ink);
 }
 .cat-item:hover {
-  background: var(--surface-2);
+  background: var(--hover);
 }
 .cat-item.active {
   background: var(--accent-soft);
@@ -972,6 +1269,10 @@ select.input {
 }
 .input-name {
   background: transparent;
+  border-color: transparent;
+}
+.input-name:hover {
+  border-color: var(--field-line);
 }
 .title-input {
   font-size: 20px;
@@ -990,10 +1291,10 @@ select.input {
   gap: 10px;
   align-items: center;
   padding: 4px 6px;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 .sub-row:hover {
-  background: var(--surface-2);
+  background: var(--hover);
 }
 .sub-row .chips,
 .sub-row .actions,
@@ -1012,8 +1313,9 @@ select.input {
 .confirm {
   margin-top: 14px;
   padding: 14px;
-  border-radius: 14px;
-  background: var(--surface-2);
+  border-radius: 18px;
+  background: var(--field);
+  border: 1px solid var(--field-line);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1027,7 +1329,7 @@ select.input {
 }
 .wizard-cat {
   padding: 10px 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--glass-line);
 }
 .wizard-cat-head {
   display: flex;
@@ -1047,20 +1349,11 @@ select.input {
   font-size: 12px;
   border-radius: 999px;
   padding: 1px 8px;
-  background: var(--surface-2);
-  color: var(--ink-soft);
-}
-.welcome {
-  background: var(--accent-soft);
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  background: var(--field);
+  color: var(--muted);
 }
 
-/* Сообщение об ошибке в разделе */
+/* Ошибка в разделе */
 .crash {
   display: flex;
   flex-direction: column;
@@ -1072,8 +1365,8 @@ select.input {
   max-height: 200px;
   overflow: auto;
   padding: 10px;
-  border-radius: 10px;
-  background: var(--surface-2);
+  border-radius: 12px;
+  background: var(--field);
   font-size: 12px;
   white-space: pre-wrap;
   word-break: break-word;
@@ -1094,15 +1387,15 @@ select.input {
   align-items: center;
   gap: 8px;
   background: var(--ink);
-  color: var(--surface);
-  border-radius: 14px;
+  color: var(--on-primary);
+  border-radius: 16px;
   padding: 10px 10px 10px 16px;
-  box-shadow: 0 10px 30px rgba(40, 20, 5, 0.3);
+  box-shadow: var(--shadow-pop);
   max-width: min(420px, calc(100vw - 32px));
   font-weight: 600;
 }
 .toast .link {
-  color: var(--accent-soft);
+  color: #f3c9a4;
 }
 .toast-error {
   background: var(--expense);
@@ -1120,17 +1413,19 @@ select.input {
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+    animation: none !important;
   }
 }
 
 /* Планшеты и телефоны */
 @media (max-width: 900px) {
-  .ops-layout,
   .cat-layout {
     grid-template-columns: minmax(0, 1fr);
   }
   .entry-card {
     position: static;
+    max-width: none;
+    order: -1;
   }
   .entry-inline {
     grid-template-columns: minmax(0, 1fr);
@@ -1147,10 +1442,17 @@ select.input {
   .wizard-sub .chips {
     flex-wrap: wrap;
   }
+  .hero-title {
+    font-size: 38px;
+  }
 }
 @media (max-width: 560px) {
   .card {
-    padding: 14px;
+    padding: 16px;
+  }
+  .topbar {
+    border-radius: 24px;
+    padding: 10px 12px;
   }
   .tabs {
     flex-wrap: nowrap;
@@ -1160,6 +1462,26 @@ select.input {
   }
   .tab {
     padding: 7px 12px;
+  }
+  .hero {
+    padding: 20px;
+  }
+  .hero-title {
+    font-size: 32px;
+  }
+  .ql-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ql-input {
+    font-size: 18px;
+  }
+  .ql-review-row {
+    grid-template-columns: 12px minmax(0, 1fr) auto 32px;
+  }
+  .ql-review-row .ql-note,
+  .ql-review-row .pchip:first-of-type {
+    display: none;
   }
   .summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1180,5 +1502,8 @@ select.input {
   }
   .bulk-lookup {
     width: 100%;
+  }
+  .insights {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

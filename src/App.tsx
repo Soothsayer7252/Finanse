@@ -3,17 +3,20 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { makeBackup } from './domain/backup';
 import { todayISO } from './domain/dates';
 import { saveTextFile } from './platform';
+import { formatDate } from './domain/dates';
 import { CategoriesScreen } from './screens/CategoriesScreen';
+import { HomeScreen } from './screens/HomeScreen';
 import { InboxScreen } from './screens/InboxScreen';
-import { OperationsScreen } from './screens/OperationsScreen';
+import { OperationsScreen, type Prefill } from './screens/OperationsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { useStore } from './store/store';
 
-type Tab = 'operations' | 'inbox' | 'categories' | 'settings';
+type Tab = 'home' | 'operations' | 'inbox' | 'categories' | 'settings';
 
 export function App() {
   const { data, saveError } = useStore();
-  const [tab, setTab] = useState<Tab>('operations');
+  const [tab, setTab] = useState<Tab>('home');
+  const [prefill, setPrefill] = useState<Prefill | null>(null);
   const inboxCount = data.operations.filter((op) => !op.subcategoryId).length;
 
   // При смене раздела начинаем сверху, а не с места, где остановились в прошлом разделе.
@@ -24,6 +27,7 @@ export function App() {
   }, [tab]);
 
   const tabs: { id: Tab; label: string; badge?: number }[] = [
+    { id: 'home', label: 'Главная' },
     { id: 'operations', label: 'Операции' },
     { id: 'inbox', label: 'Входящие', badge: inboxCount },
     { id: 'categories', label: 'Категории' },
@@ -33,12 +37,7 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            ₽
-          </span>
-          Финансы
-        </div>
+        <div className="brand">Финансы</div>
         <nav className="tabs" aria-label="Разделы">
           {tabs.map((t) => (
             <button key={t.id} type="button" className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}>
@@ -52,7 +51,16 @@ export function App() {
       {saveError && <div className="card warn-card">{saveError}</div>}
 
       <ErrorBoundary resetKey={tab} onBackup={() => saveTextFile(`finance-backup-${todayISO()}.json`, makeBackup(data))}>
-        {tab === 'operations' && <OperationsScreen goToSettings={() => setTab('settings')} />}
+        {tab === 'home' && (
+          <HomeScreen
+            goTo={setTab}
+            addForDate={(iso) => {
+              setPrefill((p) => ({ text: `${formatDate(iso).slice(0, 5)} `, n: (p?.n ?? 0) + 1 }));
+              setTab('operations');
+            }}
+          />
+        )}
+        {tab === 'operations' && <OperationsScreen prefill={prefill} />}
         {tab === 'inbox' && <InboxScreen />}
         {tab === 'categories' && <CategoriesScreen />}
         {tab === 'settings' && <SettingsScreen onImported={() => setTab('operations')} />}

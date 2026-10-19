@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { expect, importLegacy, legacySample, openApp, quickAdd, stored, tab, tempJson, test } from './helpers';
+import { expect, importLegacy, legacySample, openApp, openPanel, quickAdd, stored, tab, tempJson, test } from './helpers';
 
 /** Строка подкатегории по её названию (название лежит в поле ввода). */
 const subRow = (page: Page, name: string) => page.locator('.sub-row').filter({ has: page.locator(`input[value="${name}"]`) });
@@ -50,7 +50,7 @@ test.describe('Категории', () => {
   test('архивная подкатегория не предлагается при вводе, старые операции на месте', async ({ page }) => {
     await page.locator('.cat-item', { hasText: 'Транспорт' }).click();
     await subRow(page, 'Такси').getByRole('button', { name: 'В архив' }).click();
-    await tab(page, 'Операции').click();
+    await openPanel(page);
     await page.locator('.entry-stack .lookup input').click();
     await page.keyboard.type('такс');
     await expect(page.locator('.lookup-option')).toHaveCount(0);

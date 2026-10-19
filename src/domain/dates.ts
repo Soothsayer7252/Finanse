@@ -93,6 +93,31 @@ export function formatDate(iso: string): string {
 const WEEKDAYS = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
 const MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 
+/** «сентября» — месяц в родительном падеже (1–12). */
+export function monthGenitive(month: number): string {
+  return MONTHS_GEN[month - 1];
+}
+
+/** Список дней одного месяца словами: «28 и 30 сентября», «3, 5 и 9 октября». */
+export function formatDaysList(isos: string[]): string {
+  if (!isos.length) return '';
+  const days = isos.map((d) => String(parseISO(d)[2]));
+  const list = days.length === 1 ? days[0] : `${days.slice(0, -1).join(', ')} и ${days[days.length - 1]}`;
+  return `${list} ${monthGenitive(parseISO(isos[0])[1])}`;
+}
+
+const WEEKDAYS_SHORT = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+
+/** Коротко: «Сегодня», «Вчера», «пн, 28.09». */
+export function formatDayShort(iso: string, today: string): string {
+  if (iso === today) return 'Сегодня';
+  if (iso === addDays(today, -1)) return 'Вчера';
+  const [y, m, d] = parseISO(iso);
+  const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  const year = iso.slice(0, 4) === today.slice(0, 4) ? '' : `.${y}`;
+  return `${WEEKDAYS_SHORT[wd]}, ${String(d).padStart(2, '0')}.${String(m).padStart(2, '0')}${year}`;
+}
+
 /** Заголовок дня в списке: «Сегодня», «Вчера», «29 сентября, вторник» (год — только если не текущий). */
 export function formatDayTitle(iso: string, today: string): string {
   if (iso === today) return 'Сегодня';

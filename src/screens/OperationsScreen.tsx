@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { EntryPanel } from '../components/EntryPanel';
 import { OperationList } from '../components/OperationList';
 import { PeriodPicker } from '../components/PeriodPicker';
-import { QuickEntry } from '../components/QuickEntry';
+import { QuickLine } from '../components/QuickLine';
 import { inPeriod, resolvePeriod, todayISO } from '../domain/dates';
 import { formatMoney } from '../domain/money';
 import { normalize, opType, subLabel, totals } from '../domain/ops';
@@ -18,8 +19,15 @@ const TYPE_FILTERS: { id: TypeFilter; label: string }[] = [
   { id: 'inbox', label: 'Без категории' },
 ];
 
-export function OperationsScreen({ goToSettings }: { goToSettings: () => void }) {
+/** Текст для строки ввода, пришедший с другого экрана; n меняется при каждом переходе. */
+export interface Prefill {
+  text: string;
+  n: number;
+}
+
+export function OperationsScreen({ prefill }: { prefill: Prefill | null }) {
   const { data, ix, dispatch } = useStore();
+  const [panelOpen, setPanelOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [categoryId, setCategoryId] = useState('');
   const [search, setSearch] = useState('');
@@ -41,26 +49,37 @@ export function OperationsScreen({ goToSettings }: { goToSettings: () => void })
   }, [inPeriodOps, typeFilter, categoryId, search, ix]);
 
   const t = useMemo(() => totals(inPeriodOps, ix), [inPeriodOps, ix]);
-  const isEmpty = data.operations.length === 0 && data.categories.length === 0;
   const filtersOn = typeFilter !== 'all' || categoryId || search;
 
+  // Клавиша N (на русской раскладке — Т) открывает панель «Новая операция», если курсор не в поле ввода.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (e.ctrlKey || e.metaKey || e.altKey || el.closest('input, textarea, select, [contenteditable]')) return;
+      if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+        e.preventDefault();
+        setPanelOpen(true);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
-    <div className="ops-layout">
-      <QuickEntry />
+    <div className="stack">
+      <QuickLine key={prefill?.n ?? 0} prefill={prefill?.text} />
 
+      <div className="ops-body">
       <main className="card list-card">
-        {isEmpty && (
-          <div className="welcome">
-            <h2>Добро пожаловать!</h2>
-            <p>Вводите операции в форме слева. Категории создаются во вкладке «Категории», а операции без категории ждут во «Входящих».</p>
-            <p>
-              Есть данные из старой версии? <button className="btn btn-primary btn-sm" onClick={goToSettings}>Перенести данные</button>
-            </p>
-          </div>
-        )}
-
         <div className="list-head">
-          <PeriodPicker value={period} onChange={(period) => dispatch({ type: 'settings', patch: { period } })} />
+          <div className="list-toolbar">
+            <PeriodPicker value={period} onChange={(period) => dispatch({ type: 'settings', patch: { period } })} />
+            {!panelOpen && (
+              <button type="button" className="btn btn-primary" onClick={() => setPanelOpen(true)} title="Клавиша N">
+                + Новая операция
+              </button>
+            )}
+          </div>
           <div className="summary">
             <Sum label="Доходы" value={t.income} cls="amount-income" sign="+" />
             <Sum label="Расходы" value={t.expense} cls="" sign="−" hint={t.expenseLarge > 0 ? `из них крупные ${formatMoney(t.expenseLarge, { whole: true })}` : undefined} />
@@ -112,6 +131,8 @@ export function OperationsScreen({ goToSettings }: { goToSettings: () => void })
 
         <OperationList ops={filtered} emptyText={filtersOn ? 'Ничего не найдено.' : 'За этот период операций нет.'} />
       </main>
+      {panelOpen && <EntryPanel onClose={() => setPanelOpen(false)} />}
+      </div>
     </div>
   );
 }

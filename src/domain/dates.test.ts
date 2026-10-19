@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, addMonths, daysInMonth, endOfMonth, formatDayTitle, isValidISO, periodLabel, quickPeriod, resolvePeriod, todayISO } from './dates';
+import { addDays, addMonths, daysInMonth, endOfMonth, formatDayShort, formatDayTitle, formatDaysList, isValidISO, periodLabel, quickPeriod, resolvePeriod, todayISO } from './dates';
 
 // Тесты запускаются с часовым поясом Тюмени (UTC+5), см. package.json.
 // В старой версии именно в таких поясах даты съезжали на день.
@@ -74,5 +74,22 @@ describe('заголовки дней', () => {
     expect(formatDayTitle('2026-10-17', '2026-10-18')).toBe('Вчера');
     expect(formatDayTitle('2026-09-29', '2026-10-18')).toBe('29 сентября, вторник');
     expect(formatDayTitle('2025-12-31', '2026-10-18')).toBe('31 декабря 2025, среда');
+  });
+});
+
+describe('список дней словами', () => {
+  it('один, два, несколько', () => {
+    expect(formatDaysList(['2026-09-28'])).toBe('28 сентября');
+    expect(formatDaysList(['2026-09-28', '2026-09-30'])).toBe('28 и 30 сентября');
+    expect(formatDaysList(['2026-10-03', '2026-10-05', '2026-10-09'])).toBe('3, 5 и 9 октября');
+  });
+});
+
+describe('короткая дата', () => {
+  it('сегодня, вчера, день недели и дата', () => {
+    expect(formatDayShort('2026-10-18', '2026-10-18')).toBe('Сегодня');
+    expect(formatDayShort('2026-10-17', '2026-10-18')).toBe('Вчера');
+    expect(formatDayShort('2026-09-28', '2026-10-18')).toBe('пн, 28.09');
+    expect(formatDayShort('2025-12-31', '2026-10-18')).toBe('ср, 31.12.2025');
   });
 });

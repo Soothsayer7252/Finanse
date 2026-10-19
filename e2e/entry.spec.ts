@@ -1,4 +1,4 @@
-import { expect, importLegacy, legacySample, openApp, quickAdd, stored, tab, tempJson, test } from './helpers';
+import { expect, importLegacy, legacySample, openApp, openPanel, quickAdd, stored, tab, tempJson, test } from './helpers';
 
 type Op = { amount: number; subcategoryId: string | null; inboxType?: string; comment: string; date: string };
 const last = async (page: import('@playwright/test').Page): Promise<Op> => (await stored(page)).operations.at(-1);
@@ -7,6 +7,7 @@ test.describe('Быстрый ввод', () => {
   test.beforeEach(async ({ page }) => {
     await openApp(page);
     await importLegacy(page, tempJson(legacySample({ inboxCount: 0 })));
+    await openPanel(page);
   });
 
   test('сумма → категория → комментарий, Enter сохраняет и очищает форму', async ({ page }) => {

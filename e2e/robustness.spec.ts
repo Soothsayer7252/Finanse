@@ -81,6 +81,7 @@ test.describe('Устойчивость', () => {
       );
     });
     await page.goto(APP_URL);
+    await tab(page, 'Операции').click();
     await expect(page.locator('.op-row')).toHaveCount(1);
     for (const name of ['Входящие', 'Категории', 'Настройки', 'Операции']) await tab(page, name).click();
   });
@@ -115,28 +116,28 @@ test.describe('Устойчивость', () => {
   });
 });
 
-test.describe('Телефон и тёмная тема', () => {
+test.describe('Телефон и тема', () => {
   test('на ширине телефона ничего не вылезает за край ни в одном разделе', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
     await openApp(page);
     await importLegacy(page, tempJson(legacySample({ inboxCount: 3 })));
-    for (const name of ['Операции', 'Входящие', 'Категории', 'Настройки']) {
+    for (const name of ['Главная', 'Операции', 'Входящие', 'Категории', 'Настройки']) {
       await tab(page, name).click();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       expect(overflow, `горизонтальная прокрутка в разделе «${name}»`).toBeLessThanOrEqual(0);
     }
   });
 
-  test('тёмная тема: все разделы без ошибок', async ({ browser }) => {
+  test('при тёмной теме системы страница остаётся в теме Васика и без ошибок', async ({ browser }) => {
     const ctx = await browser.newContext({ colorScheme: 'dark', locale: 'ru-RU', timezoneId: 'Asia/Yekaterinburg' });
     const page = await ctx.newPage();
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await openApp(page);
     await importLegacy(page, tempJson(legacySample()));
-    for (const name of ['Входящие', 'Категории', 'Настройки', 'Операции']) await tab(page, name).click();
+    for (const name of ['Главная', 'Входящие', 'Категории', 'Настройки', 'Операции']) await tab(page, name).click();
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    expect(bg).toBe('rgb(28, 22, 18)');
+    expect(bg).toBe('rgb(246, 236, 226)');
     expect(errors).toEqual([]);
     await ctx.close();
   });

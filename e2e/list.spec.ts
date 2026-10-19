@@ -134,6 +134,7 @@ test.describe('Список операций', () => {
     await expect(page.locator('.period-button')).toContainText('Октябрь 2026');
     await page.clock.setFixedTime(new Date('2026-11-03T12:00:00+05:00'));
     await page.reload();
+    await page.locator('.tab', { hasText: 'Операции' }).click();
     await expect(page.locator('.period-button')).toContainText('Ноябрь 2026');
     await page.locator('.period-button').click();
     await expect(page.locator('.popover .chip', { hasText: 'Этот месяц' })).toHaveClass(/active/);

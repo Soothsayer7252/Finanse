@@ -103,8 +103,16 @@ export async function importLegacy(page: Page, path: string) {
   await expect(page.locator('.op-row').first()).toBeVisible();
 }
 
-/** Быстрый ввод одной операции с клавиатуры. */
+/** Открывает «Операции» и боковую панель «Новая операция». */
+export async function openPanel(page: Page) {
+  if (!(await tab(page, 'Операции').evaluate((el) => el.classList.contains('active')))) await tab(page, 'Операции').click();
+  if (!(await page.locator('#amount-stack').isVisible())) await page.getByRole('button', { name: '+ Новая операция' }).click();
+  await expect(page.locator('#amount-stack')).toBeVisible();
+}
+
+/** Ввод одной операции через панель с полями, с клавиатуры. */
 export async function quickAdd(page: Page, amount: string, category = '', comment = '') {
+  await openPanel(page);
   await page.locator('#amount-stack').fill(amount);
   await page.locator('#amount-stack').press('Enter');
   if (category) await page.keyboard.type(category);
